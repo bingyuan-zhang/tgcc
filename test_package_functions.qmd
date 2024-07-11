@@ -5,9 +5,22 @@ format: html
 editor: visual
 ---
 
+Source the functions
+
+```{r}
+Rcpp::sourceCpp("./src/main.cpp")
+Rcpp::sourceCpp("./src/main_dp.cpp")
+source("./R/tgCC.R")
+source("./R/initialization.R")
+source("./R/FunPlotOut.R")
+```
+
 ## Prepare testing data set
 
 ```{r}
+#| cache: true
+#| message: false
+#| echo: false
 make.mixgaussian <- function(n) {
   n1 = round(n/3)
   n2 = n1
@@ -39,19 +52,9 @@ plot(data, col=lab)
 ## Apply TGCC
 
 ```{r}
-lamseq <- seq(1, 2000, length.out = 10000)
-tgcc.fit <- tgCC(data, lamseq, dth = 10)
-```
-
-## Dendrogram
-
-```{r}
-library(ggdendro)
-library(ggplot2)
-```
-
-```{r}
 #| cache: true
 #| message: false
+lamseq <- seq(20, 2000, length.out = 10000)
+tgcc.fit <- tgCC(data, lamseq, dth = 30)
 make_dendrogram(tgcc.fit, lab)
 ```

@@ -114,7 +114,7 @@ make_dendrogram <- function(tgcc.fit, lab) {
   barcol <- ggcols[lab[pars$iorder]]
 
   dhc <- as.dendrogram(hc_tgcc)
-  labels(dhc) <- rep("", length(labels(dhc)))
+  dendextend::labels(dhc) <- rep("", length(labels(dhc)))
 
   plot(dhc)
   dendextend::colored_bars(barcol, text_shift = NULL, y_shift = -50)
