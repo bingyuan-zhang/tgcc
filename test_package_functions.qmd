@@ -1,0 +1,57 @@
+---
+title: "test_for_new_package"
+author: "zhang"
+format: html
+editor: visual
+---
+
+## Prepare testing data set
+
+```{r}
+make.mixgaussian <- function(n) {
+  n1 = round(n/3)
+  n2 = n1
+  n3 = n-n1-n2
+  p = 2
+  mean1 = t(matrix(c(1,2.5), nrow = p, ncol = n1))
+  mean2 = t(matrix(c(2.5,-1.8), nrow = p, ncol = n2))
+  mean3 = t(matrix(c(-2.5,-2), nrow = p, ncol = n3))
+  noise1 = matrix(rnorm(n1*p, sd = 1), nrow = n1, ncol = p)
+  noise2 = matrix(rnorm(n2*p, sd = 1), nrow = n2, ncol = p)
+  noise3 = matrix(rnorm(n3*p, sd = 1), nrow = n3, ncol = p)
+  data = rbind(noise1 + mean1, noise2 + mean2, noise3 + mean3)
+  label = c(rep(1,n1), rep(2,n2), rep(3,n3))
+  return(list(data = data, label = label))
+}
+
+```
+
+Show plot and results
+
+```{r}
+set.seed(1)
+dl <- make.mixgaussian(n = 400)
+data <- dl$data
+lab <- dl$label
+plot(data, col=lab)
+```
+
+## Apply TGCC
+
+```{r}
+lamseq <- seq(1, 2000, length.out = 10000)
+tgcc.fit <- tgCC(data, lamseq, dth = 10)
+```
+
+## Dendrogram
+
+```{r}
+library(ggdendro)
+library(ggplot2)
+```
+
+```{r}
+#| cache: true
+#| message: false
+make_dendrogram(tgcc.fit, lab)
+```

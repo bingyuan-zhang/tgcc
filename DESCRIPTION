@@ -1,0 +1,21 @@
+Package: tgcc
+Type: Package
+Title: Tree Guided Convex Clustering
+Version: 0.0.9
+Author: Bingyuan Zhang
+Maintainer: Bingyuan Zhang <cyouheigen@gmail.com>
+Description: 
+    This Package includes a dynamic programming based optimization framework of convex clustering.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+LinkingTo: 
+    Rcpp,
+    RcppArmadillo
+Imports: 
+    Rcpp,
+    RcppArmadillo 
+RoxygenNote: 7.2.3
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
