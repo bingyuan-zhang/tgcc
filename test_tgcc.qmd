@@ -8,9 +8,10 @@ execute:
 editor: visual
 ---
 
-Source the functions
-
 ```{r}
+#| cache: false
+#| message: false
+#| echo: false
 Rcpp::sourceCpp("./src/main_init.cpp")
 Rcpp::sourceCpp("./src/main_dp.cpp")
 Rcpp::sourceCpp("./src/main_update.cpp")
@@ -41,6 +42,19 @@ make.mixgaussian <- function(n) {
   return(list(data = data, label = label))
 }
 
+make.twomoons <- function(n, a = 2, diff = -0.7, noise=0.5){
+  m1 = n/2
+  m2 = n/2
+  x1 <- runif(m1, min = 0, max = pi)
+  x2 <- runif(m2, min = pi/2, max = (1+1/2)*pi)
+  y1 <- a*sin(x1) + diff/2
+  y2 <- a*cos(x2) - diff/2
+  data <- matrix(NA, nrow = n, ncol = 2)
+  data[,1] <- c(x1, x2) + rnorm(n, sd = noise/2)
+  data[,2] <- c(y1, y2) + rnorm(n, sd = noise/2)
+  target <- c(rep(1,m1),rep(2,m2))
+  return(list(data = data, label = target))
+}
 ```
 
 ## test 1
@@ -54,7 +68,18 @@ data <- dl$data
 lab <- dl$label
 plot(data, col=lab)
 lamseq <- seq(20, 2000, length.out = 10000)
-tgcc.fit <- tgCC(data, lamseq, dth = 30)
+tgcc.fit <- tgCC(data, lamseq, dth = 30, bw = 10)
+make_dendrogram(tgcc.fit, lab)
+```
+
+```{r}
+set.seed(1)
+dl <- make.twomoons(n = 400)
+data <- dl$data
+lab <- dl$label
+plot(data, col=lab)
+lamseq <- seq(20, 3000, length.out = 10000)
+tgcc.fit <- tgCC(data, lamseq, dth = 50, bw = 3)
 make_dendrogram(tgcc.fit, lab)
 ```
 
