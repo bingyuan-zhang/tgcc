@@ -53,7 +53,7 @@ void initialize(
   types[0] = (adjList[0].size() == 1) ? 3 : 4;
 
   // Initialize root's children
-  for (size_t i = 0; i < adjList[0].size(); ++i) {
+  for (int i = 0; i < adjList[0].size(); ++i) {
     parents[adjList[0][i]] = 0;
     edgeWeights[adjList[0][i]] = std::exp(-std::pow(distanceList[0][i], 2) / gamma);
   }
@@ -61,11 +61,11 @@ void initialize(
   // BFS to initialize other nodes
   while (seenCount < nodeCount) {
     currentDepth += 1;
-    for (size_t i = 0; i < currentDepthVertices.size(); ++i) {
+    for (int i = 0; i < currentDepthVertices.size(); ++i) {
       int vertex = currentDepthVertices[i];
       vertices[seenCount] = vertex;
       depths[seenCount] = currentDepth;
-      for (size_t j = 0; j < adjList[vertex].size(); ++j) {
+      for (int j = 0; j < adjList[vertex].size(); ++j) {
         int neighbor = adjList[vertex][j];
         if (neighbor != parents[vertex]) {
           // Find children of the vertex
@@ -147,23 +147,15 @@ Rcpp::List init_prepare (
     depths, types, edgeWeights, parents, partitions, gamma);
 
   Rcpp::List res = List::create(
-    Named("Vertice")   = wrap(vertices),
-    Named("Depth")     = wrap(depths),
-    Named("Type")      = wrap(types),
-    Named("WeightE")   = wrap(edgeWeights),
-    Named("WeightV")   = wrap(nodeWeights),
-    Named("Parent")    = wrap(parents),
-    Named("Partition") = wrap(partitions),
-    Named("Children")  = wrap(childrenList)
+    Named("Vertices")   = wrap(vertices),
+    Named("Depths")     = wrap(depths),
+    Named("Types")      = wrap(types),
+    Named("EdgeWeights")= wrap(edgeWeights),
+    Named("NodeWeights")= wrap(nodeWeights),
+    Named("Parents")    = wrap(parents),
+    Named("Partitions") = wrap(partitions),
+    Named("Children")   = wrap(childrenList)
   );
 
   return (res);
 }
-
-
-
-
-
-
-
-

@@ -3,413 +3,301 @@ using namespace Rcpp;
 
 // [[Rcpp::depends(RcppArmadillo)]]
 
-void update (arma::mat Theta,
-  arma::mat& input,
-  std::vector<double>& V,
-  std::vector<double>& T,
-  std::vector<double>& P,
-  std::vector<double>& WV,
-  std::vector<double>& WE,
-  std::vector<std::vector<double>>& C,
-  std::vector<double>& pointer,
-  std::vector<double>& rowV) {
+void updateBoundariesForLeaf(
+    double nodeValue,
+    double nodeWeight,
+    double lambda,
+    std::deque<double>& boundaryPoints,
+    std::deque<double>& intercepts,
+    std::deque<double>& slopes,
+    double& lowerBound,
+    double& upperBound) {
 
-  int n = V.size();
-  std::vector<double> newrowV, newP, newT, newWV, newD, newWE;
-  std::vector<double> newpointer (n);
-  std::vector<double> pdepth (n);
-  arma::mat newinput;
+  // Calculate the lower and upper bounds
+  lowerBound = nodeValue - lambda / nodeWeight;
+  upperBound = nodeValue + lambda / nodeWeight;
 
-  int root = V[n-1];
-  int i, j, node, parent, child, pind;
-  std::vector<double> brothers, newpc;
-  double d;
+  // Update boundary points (bp = c(l, u))
+  boundaryPoints.push_front(lowerBound);
+  boundaryPoints.push_back(upperBound);
 
-  newrowV.push_back(V[n-1]);
-  newP.push_back(P[0]);
-  newT.push_back(T[0]);
-  newWV.push_back(WV[0]);
-  newWE.push_back(0);
-  newD.push_back(0);
-  pdepth[0] = 0;
-  newpointer[0] = 0;
-  newinput.insert_rows(0, input.row(0));
+  // Update intercepts (i = c(-lam, -nw*xnode, lam))
+  intercepts.push_front(-lambda);
+  intercepts.push_back(-nodeWeight * nodeValue);
+  intercepts.push_back(lambda);
 
-  for (i = n-2; i >= 0; i--) {
-
-    node = V[i];
-    parent = P[node];
-    pind = newpointer[parent];
-
-    d = arma::norm(Theta.row(node) - Theta.row(parent), 2);
-
-    if (d != 0) {
-      newD.push_back(pdepth[parent] + 1);
-      newrowV.push_back(node);
-      newP.push_back(parent);
-      newWV.push_back(WV[node]);
-      newWE.push_back(WE[node]);
-      newT.push_back(T[node]);
-
-      newpointer[node] = newrowV.size() - 1;
-      pdepth[node] = pdepth[parent] + 1;
-      newinput.insert_rows(newinput.n_rows, input.row(node));
-
-    } else {
-
-      // update input value
-      newinput.row(pind) = (newWV[pind]*newinput.row(pind) + WV[node]*input.row(node))/(newWV[pind] + WV[node]);
-
-      // update vertice weight
-      newWV[pind] = newWV[pind] + WV[node];
-
-      // update the children of the new node
-      // update the parent of the nodes to be their grand parent.
-      for (j = 0; j < C[node].size(); j++) {
-        child = C[node][j];
-        P[child] = P[node];
-      }
-      // remove the merged node from its parent's children
-      brothers = C[parent];
-      newpc.clear();
-      for (j = 0; j < brothers.size(); j++) {
-        if (brothers[j] != node) {
-          newpc.push_back(brothers[j]);
-        }
-      }
-      newpc.insert(newpc.end(), C[node].begin(), C[node].end());
-      C[parent] = newpc;
-
-      // update the class of the parent
-      if (parent == root) {
-        if (newpc.size() == 1) {
-          newT[pind] = 3;
-        } else {
-          newT[pind] = 4;
-        }
-      } else if (newpc.size() == 0) {
-        newT[pind] = 0;
-      } else if (newpc.size() == 1) {
-        newT[pind] = 1;
-      } else {
-        newT[pind] = 2;
-      }
-
-      newpointer[node] = pind;
-      pdepth[node] = pdepth[parent];
-    }
-  }
-
-  std::vector<double> index (n, 0);
-  for (i = 0; i < newrowV.size(); i++) {
-    index[newrowV[i]] = i;
-  }
-
-  std::vector<std::vector<double>> newC (newrowV.size());
-  for (i = 0; i < newrowV.size(); i++) {
-    node = newrowV[i];
-    for (j = 0; j < C[node].size(); j++) {
-      newC[i].push_back(index[C[node][j]]);
-    }
-  }
-
-  for (i = 0; i < newrowV.size(); i++) {
-    newP[i] = index[newP[i]];
-  }
-
-  // sort V by the order of D
-  std::vector<double> idx (newD.size());
-  std::iota(idx.begin(), idx.end(), 0);
-  std::stable_sort(idx.begin(), idx.end(),
-    [&newD](int i1, int i2) {return newD[i1] > newD[i2];});
-
-  std::vector<double> newV (newrowV.size());
-  for (int i = 0; i < newrowV.size(); i++) {
-    newV[i] = idx[i];
-  }
-
-  // return value
-  input = newinput;
-  V = newV;
-  T = newT;
-  P = newP;
-  WE = newWE;
-  WV = newWV;
-  C = newC;
-  pointer = newpointer;
-  rowV = newrowV;
-
+  // Update slopes (s = c(0, nw, 0))
+  slopes.push_front(0);
+  slopes.push_back(nodeWeight);
+  slopes.push_back(0);
 }
 
 
-// [[Rcpp::export]]
-Rcpp::List updatenew (arma::mat Theta,
-  arma::mat& input,
-  std::vector<double>& V,
-  std::vector<double>& T,
-  std::vector<double>& P,
-  std::vector<double>& WV,
-  std::vector<double>& WE,
-  std::vector<std::vector<double>>& C) {
+void updateRootTheta(
+    double nodeValue,
+    double nodeWeight,
+    std::deque<double>& boundaryPoints,
+    std::deque<double>& intercepts,
+    std::deque<double>& slopes,
+    double& theta) {
 
-  std::vector<double> pointer;
-  std::vector<double> rowV;
+  // Calculate the initial value of theta
+  theta = (nodeWeight * nodeValue - intercepts.front()) / (slopes.front() + nodeWeight);
 
-  update (Theta, input, V, T, P, WV, WE, C, pointer, rowV);
-
-  Rcpp::List res = List::create(
-    Named("newinput") = wrap(input),
-    Named("newV") = wrap(V),
-    Named("newT") = wrap(T),
-    Named("newP") = wrap(P),
-    Named("newWE") = wrap(WE),
-    Named("newWV") = wrap(WV),
-    Named("newC") = wrap(C),
-    Named("pointer") = wrap(pointer),
-    Named("rowofV") = wrap(rowV)
-  );
-
-  return (res);
-}
-
-
-
-void forwardleaf (double xnode,
-  double wv,
-  double lam,
-  std::deque<double>& BP,
-  std::deque<double>& I,
-  std::deque<double>& S,
-  double& l,
-  double& u) {
-
-  l = xnode - lam / wv;
-  u = xnode + lam / wv;
-
-  // bp = c(L,U)
-  BP.push_front(l);
-  BP.push_back(u);
-
-  // I = c(-lam, -wv*xnode, lam)
-  I.push_front(-lam);
-  I.push_back(-wv*xnode);
-  I.push_back(lam);
-
-  // s = c(0, wv, 0)
-  S.push_front(0);
-  S.push_back(wv);
-  S.push_back(0);
-
-}
-
-void forwardroot (double xnode,
-  double wv,
-  std::deque<double>& BP,
-  std::deque<double>& I,
-  std::deque<double>& S,
-  double& theta) {
-
-  theta = (wv*xnode - I.front()) / (S.front() + wv);
-
-  while (BP.front() < theta) {
-    I.pop_front();
-    S.pop_front();
-    BP.pop_front();
-    theta = (wv*xnode - I.front()) / (S.front() + wv);
-    if(S.size() == 1) break;
+  // Iterate through boundaryPoints to update theta
+  while (boundaryPoints.front() < theta) {
+    intercepts.pop_front();
+    slopes.pop_front();
+    boundaryPoints.pop_front();
+    // Recalculate theta
+    theta = (nodeWeight * nodeValue - intercepts.front()) / (slopes.front() + nodeWeight);
+    // Break the loop if only one element remains in slopes
+    if (slopes.size() == 1) break;
   }
 
 }
 
-void forward (double xnode,
-  double wv,
-  double lam,
-  std::deque<double>& BP,
-  std::deque<double>& I,
-  std::deque<double>& S,
-  double& l,
-  double& u) {
+void updateBoundaries(
+    double nodeValue,
+    double nodeWeight,
+    double lambda,
+    std::deque<double>& boundaryPoints,
+    std::deque<double>& intercepts,
+    std::deque<double>& slopes,
+    double& lowerBound,
+    double& upperBound) {
 
-  l = (-lam + wv*xnode - I.front()) / (S.front() + wv);
+  // Calculate the initial lower bound
+  lowerBound = (-lambda + nodeWeight * nodeValue -
+    intercepts.front()) / (slopes.front() + nodeWeight);
 
-  while (BP.front() < l) {
-    I.pop_front();
-    S.pop_front();
-    BP.pop_front();
-    l = (-lam + wv*xnode - I.front()) / (S.front() + wv);
-    if(S.size() == 1) break;
+  // Update lower bound by iterating through boundaryPoints
+  while (boundaryPoints.front() < lowerBound) {
+    intercepts.pop_front();
+    slopes.pop_front();
+    boundaryPoints.pop_front();
+    lowerBound = (-lambda + nodeWeight * nodeValue -
+      intercepts.front()) / (slopes.front() + nodeWeight);
+    if (slopes.size() == 1) break;
   }
 
-  if (S.size() == 1) {
-    u = (lam + wv*xnode - I.front()) / (S.front() + wv);
+  // Calculate the initial upper bound
+  if (slopes.size() == 1) {
+    upperBound = (lambda + nodeWeight * nodeValue -
+      intercepts.front()) / (slopes.front() + nodeWeight);
   } else {
-    u = (lam + wv*xnode - I.back()) / (S.back() + wv);
-    while (BP.back() > u) {
-      I.pop_back();
-      S.pop_back();
-      BP.pop_back();
-      u = (lam + wv*xnode - I.back()) / (S.back() + wv);
-      if (S.size() == 1) break;
+    upperBound = (lambda + nodeWeight * nodeValue -
+      intercepts.back()) / (slopes.back() + nodeWeight);
+    while (boundaryPoints.back() > upperBound) {
+      intercepts.pop_back();
+      slopes.pop_back();
+      boundaryPoints.pop_back();
+      upperBound = (lambda + nodeWeight * nodeValue -
+        intercepts.back()) / (slopes.back() + nodeWeight);
+      if (slopes.size() == 1) break;
     }
   }
 
-  // BP = c(l, BP, u)
-  BP.push_front(l);
-  BP.push_back(u);
+  // Update boundary points
+  boundaryPoints.push_front(lowerBound);
+  boundaryPoints.push_back(upperBound);
 
-  // I = c(-lam, I -wv*xnode, lam)
-  for (int i=0; i<I.size(); i++) {
-    I[i] = I[i] - wv*xnode;
+  // Update intercepts
+  for (int i = 0; i < intercepts.size(); i++) {
+    intercepts[i] -= nodeWeight * nodeValue;
   }
-  I.push_front(-lam);
-  I.push_back(lam);
+  intercepts.push_front(-lambda);
+  intercepts.push_back(lambda);
 
-  // S = c(0, S+wv, 0)
-  for (int i=0; i<S.size(); i++) {
-    S[i] = S[i] + wv;
+  // Update slopes
+  for (int i = 0; i < slopes.size(); i++) {
+    slopes[i] += nodeWeight;
   }
-  S.push_front(0);
-  S.push_back(0);
-
+  slopes.push_front(0);
+  slopes.push_back(0);
 }
 
-void mergequeues (std::vector<double> children,
-  int index,
-  std::vector<std::deque<double>>& BPs,
-  std::vector<std::deque<double>>& Is,
-  std::vector<std::deque<double>>& Ss) {
+void mergeQueues(
+    const std::vector<double>& children,
+    int parentIndex,
+    std::vector<std::deque<double>>& boundaryPoints,
+    std::vector<std::deque<double>>& intercepts,
+    std::vector<std::deque<double>>& slopes) {
 
-  int ns = children.size();
+  int numChildren = children.size();
   int child;
-  std::vector<double> bp_len (ns);
-  std::deque<double> new_bp;
+  std::vector<double> bpLengths(numChildren);
+  std::deque<double> mergedBoundaryPoints;
 
-  for (int i=0; i<ns; i++) {
+  // Concatenate all boundary points from children
+  for (int i = 0; i < numChildren; i++) {
     child = children[i];
-    bp_len[i] = BPs[child].size();
-    new_bp.insert(std::end(new_bp), std::begin(BPs[child]), std::end(BPs[child]));
+    bpLengths[i] = boundaryPoints[child].size();
+    mergedBoundaryPoints.insert(mergedBoundaryPoints.end(),
+      boundaryPoints[child].begin(), boundaryPoints[child].end());
   }
-  int l = new_bp.size();
+  int totalLength = mergedBoundaryPoints.size();
 
-  // obtain the rank
-  std::vector< std::pair<double, int> > bp_sort(l);
-  std::vector<double> rank(l);
-  for (int i=0; i<l; i++) {
-    bp_sort[i] =  std::make_pair(new_bp[i], i);
+  // Obtain the rank of merged boundary points
+  std::vector<std::pair<double, int>> bpSort(totalLength);
+  std::vector<double> ranks(totalLength);
+  for (int i = 0; i < totalLength; i++) {
+    bpSort[i] = std::make_pair(mergedBoundaryPoints[i], i);
   }
-  std::sort(bp_sort.begin(), bp_sort.end());
-  for (int i=0; i<l; i++) {
-    rank[bp_sort[i].second] = i;
+  std::sort(bpSort.begin(), bpSort.end());
+  for (int i = 0; i < totalLength; i++) {
+    ranks[bpSort[i].second] = i;
   }
-  std::sort(new_bp.begin(), new_bp.end());
+  std::sort(mergedBoundaryPoints.begin(), mergedBoundaryPoints.end());
 
-  // merge queues
-  int s1 = 0;
-  int s2 = 0;
-  std::vector<std::vector<double>> i_tosum (ns, std::vector<double> (l + 1)); // included the extended sequence
-  std::vector<std::vector<double>> s_tosum (ns, std::vector<double> (l + 1));
-  for (int i = 0; i < ns; i++) {
+  // Merge queues
+  int start1 = 0;
+  int start2 = 0;
+  std::vector<std::vector<double>> interceptsToSum(numChildren, std::vector<double>(totalLength + 1));
+  std::vector<std::vector<double>> slopesToSum(numChildren, std::vector<double>(totalLength + 1));
+  for (int i = 0; i < numChildren; i++) {
     child = children[i];
-    s2 = 0;
-    for (int j = 0; j < bp_len[i]; j++) {
-      std::fill(i_tosum[i].begin() + s2, i_tosum[i].begin() + rank[s1+j] + 1, Is[child][j]);
-      std::fill(s_tosum[i].begin() + s2, s_tosum[i].begin() + rank[s1+j] + 1, Ss[child][j]);
-      s2 = rank[s1+j] + 1;
+    start2 = 0;
+
+    for (int j = 0; j < bpLengths[i]; j++) {
+
+      std::fill(interceptsToSum[i].begin() + start2,
+        interceptsToSum[i].begin() + ranks[start1 + j] + 1, intercepts[child][j]);
+
+      std::fill(slopesToSum[i].begin() + start2,
+        slopesToSum[i].begin() + ranks[start1 + j] + 1, slopes[child][j]);
+
+      start2 = ranks[start1 + j] + 1;
     }
-    std::fill(i_tosum[i].begin() + s2, i_tosum[i].end(), Is[child][bp_len[i]]);
-    std::fill(s_tosum[i].begin() + s2, s_tosum[i].end(), Ss[child][bp_len[i]]);
-    s1 = s1 + bp_len[i];
+
+    std::fill(interceptsToSum[i].begin() + start2,
+      interceptsToSum[i].end(), intercepts[child][bpLengths[i]]);
+
+    std::fill(slopesToSum[i].begin() + start2,
+      slopesToSum[i].end(), slopes[child][bpLengths[i]]);
+
+    start1 += bpLengths[i];
   }
 
-  std::deque<double> new_i (l + 1, 0.0);
-  std::deque<double> new_s (l + 1, 0.0);
+  std::deque<double> newIntercepts(totalLength + 1, 0.0);
+  std::deque<double> newSlopes(totalLength + 1, 0.0);
 
-  for (int j = 0; j < l+1; j++) {
-    for (int i = 0; i < ns; i++) {
-      new_i[j] = new_i[j] + i_tosum[i][j];
-      new_s[j] = new_s[j] + s_tosum[i][j];
+  // Update the intercepts and slopes
+  for (int j = 0; j < totalLength + 1; j++) {
+    for (int i = 0; i < numChildren; i++) {
+      newIntercepts[j] += interceptsToSum[i][j];
+      newSlopes[j] += slopesToSum[i][j];
     }
   }
 
-  BPs[index] = new_bp;
-  Is[index] = new_i;
-  Ss[index] = new_s;
+  // Update the boundary points, intercepts, and slopes
+  boundaryPoints[parentIndex] = mergedBoundaryPoints;
+  intercepts[parentIndex] = newIntercepts;
+  slopes[parentIndex] = newSlopes;
+
 }
-
 
 // [[Rcpp::export]]
-std::vector<double> dp (std::vector<double> x,
-  double lam,
-  std::vector<double> Vertice,
-  std::vector<double> Type,
-  std::vector<double> Parent,
-  std::vector<double> WeightV,
-  std::vector<double> WeightE,
-  std::vector<std::vector<double>> Children) {
+std::vector<double> computeTheta(
+    const std::vector<double>& nodeValues,
+    double lambda,
+    const std::vector<double>& vertices,
+    const std::vector<double>& nodeTypes,
+    const std::vector<double>& parents,
+    const std::vector<double>& nodeWeights,
+    const std::vector<double>& edgeWeights,
+    const std::vector<std::vector<double>>& childrenList) {
 
-  int n = x.size();
-  std::vector<std::deque<double>> BPs (n); // branch points
-  std::vector<std::deque<double>> Is (n); // intercepts
-  std::vector<std::deque<double>> Ss (n); // slopes
-  std::vector<double> L (n);
-  std::vector<double> U (n);
+  int numNodes = nodeValues.size();
+  std::vector<std::deque<double>> boundaryPoints(numNodes);
+  std::vector<std::deque<double>> intercepts(numNodes);
+  std::vector<std::deque<double>> slopes(numNodes);
+  std::vector<double> lowerBounds(numNodes);
+  std::vector<double> upperBounds(numNodes);
 
-  int v;
-  int t;
-  int p;
-  double wv;
-  double we;
-  double xnode;
-
+  int vertex;
+  int nodeType;
+  int parent;
   int child;
+
+  double nodeWeight;
+  double edgeWeight;
+  double nodeValue;
+
   std::vector<double> children;
-  std::vector<double> theta (n, 0);
+  std::vector<double> theta(numNodes, 0);
 
-  for (int i=0; i < n; i++) {
+  // Forward pass
+  for (int i = 0; i < numNodes; i++) {
+    vertex = vertices[i];
+    nodeType = nodeTypes[vertex];
+    nodeWeight = nodeWeights[vertex];
+    edgeWeight = edgeWeights[vertex];
+    nodeValue = nodeValues[vertex];
 
-    v = Vertice[i];
-    t = Type[v];
-    wv = WeightV[v];
-    we = WeightE[v];
-    xnode = x[v];
+    if (nodeType == 0) {
 
-    if (t == 0) {
-      forwardleaf(xnode, wv, we*lam, BPs[v], Is[v], Ss[v], L[i], U[i]);
-    } else if (t == 1) {
-      child = Children[v][0];
-      BPs[v] = BPs[child];
-      Is[v] = Is[child];
-      Ss[v] = Ss[child];
-      forward(xnode, wv, we*lam, BPs[v], Is[v], Ss[v], L[i], U[i]);
-    } else if (t == 2) {
-      children = Children[v];
-      mergequeues(children, v, BPs, Is, Ss);
-      forward(xnode, wv, we*lam, BPs[v], Is[v], Ss[v], L[i], U[i]);
+      updateBoundariesForLeaf(
+        nodeValue, nodeWeight, edgeWeight * lambda,
+        boundaryPoints[vertex], intercepts[vertex], slopes[vertex],
+        lowerBounds[i], upperBounds[i]);
+
+    } else if (nodeType == 1) {
+
+      child = childrenList[vertex][0];
+      boundaryPoints[vertex] = boundaryPoints[child];
+      intercepts[vertex] = intercepts[child];
+      slopes[vertex] = slopes[child];
+
+      updateBoundaries(
+        nodeValue, nodeWeight, edgeWeight * lambda,
+        boundaryPoints[vertex], intercepts[vertex], slopes[vertex],
+        lowerBounds[i], upperBounds[i]);
+
+    } else if (nodeType == 2) {
+
+      children = childrenList[vertex];
+      mergeQueues(children, vertex, boundaryPoints, intercepts, slopes);
+
+      updateBoundaries(
+        nodeValue, nodeWeight, edgeWeight * lambda,
+        boundaryPoints[vertex], intercepts[vertex], slopes[vertex],
+        lowerBounds[i], upperBounds[i]);
+
     } else {
-      if (t == 3) {
-        child = Children[v][0];
-        forwardroot(xnode, wv, BPs[child], Is[child], Ss[child], theta[v]);
+      if (nodeType == 3) {
+
+        child = childrenList[vertex][0];
+
+        updateRootTheta(nodeValue, nodeWeight,
+          boundaryPoints[child], intercepts[child], slopes[child],
+          theta[vertex]);
+
       } else {
-        children = Children[v];
-        mergequeues(children, v, BPs, Is, Ss);
-        forwardroot(xnode, wv, BPs[v], Is[v], Ss[v], theta[v]);
+
+        children = childrenList[vertex];
+        mergeQueues(children, vertex, boundaryPoints, intercepts, slopes);
+
+        updateRootTheta(nodeValue, nodeWeight,
+          boundaryPoints[vertex], intercepts[vertex], slopes[vertex],
+          theta[vertex]);
+
       }
     }
   }
 
-  //Backward pass
-  for (int i=n-2; i>=0; i--){
-    v = Vertice[i];
-    p = Parent[v];
-    if (theta[p] < L[i]){
-      theta[v] = L[i];
-    } else if (theta[p] > U[i]) {
-      theta[v] = U[i];
+  // Backward pass
+  for (int i = numNodes - 2; i >= 0; i--) {
+    vertex = vertices[i];
+    parent = parents[vertex];
+    if (theta[parent] < lowerBounds[i]) {
+      theta[vertex] = lowerBounds[i];
+    } else if (theta[parent] > upperBounds[i]) {
+      theta[vertex] = upperBounds[i];
     } else {
-      theta[v] = theta[p];
+      theta[vertex] = theta[parent];
     }
   }
 
-  return(theta);
+  return theta;
 }
-

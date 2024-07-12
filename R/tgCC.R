@@ -22,12 +22,12 @@ tgCC <- function(
   params <- init$params
 
   # parameters for tree-guided L-1 convex clustering.
-  Tp <- params$Type
-  Pt <- params$Partition
-  WE <- params$WeightE
-  WV <- params$WeightV
-  V  <- params$Vertice
-  P  <- params$Parent
+  Tp <- params$Types
+  Pt <- params$Partitions
+  WE <- params$EdgeWeights
+  WV <- params$NodeWeights
+  V  <- params$Vertices
+  P  <- params$Parents
   C  <- params$Children
 
   # set a threshold for edge weights of outliers.
@@ -50,7 +50,7 @@ tgCC <- function(
 
     # Dynamic Programming
     for (j in 1:p) {
-      Theta[, j] = dp (U[, j], lam, V, Tp, P, WV, WE, C)
+      Theta[, j] = computeTheta (U[, j], lam, V, Tp, P, WV, WE, C)
     }
 
     # Cluster step
@@ -59,13 +59,13 @@ tgCC <- function(
     t_end = proc.time()
     fit_time = fit_time + t_end[3] - t_start[3]
 
-    U  <- params$newinput
-    Tp <- params$newT
-    WE <- params$newWE
-    WV <- params$newWV
-    V  <- params$newV
-    C  <- params$newC
-    P  <- params$newP
+    U  <- params$newInput
+    Tp <- params$newTypes
+    WE <- params$newEdgeWeights
+    WV <- params$newNodeWeights
+    V  <- params$newVertices
+    C  <- params$newChildrenList
+    P  <- params$newParents
 
     Coord[[k]] = U
     Pointer[[k]] = params$pointer

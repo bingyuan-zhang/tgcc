@@ -62,14 +62,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // init_prepare
-Rcpp::List init_prepare(std::vector<double> from, std::vector<double> to, std::vector<double> dist, double gamma);
+Rcpp::List init_prepare(const std::vector<double>& from, const std::vector<double>& to, const std::vector<double>& dist, double gamma);
 RcppExport SEXP _tgcc_init_prepare(SEXP fromSEXP, SEXP toSEXP, SEXP distSEXP, SEXP gammaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< std::vector<double> >::type from(fromSEXP);
-    Rcpp::traits::input_parameter< std::vector<double> >::type to(toSEXP);
-    Rcpp::traits::input_parameter< std::vector<double> >::type dist(distSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type from(fromSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type to(toSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type dist(distSEXP);
     Rcpp::traits::input_parameter< double >::type gamma(gammaSEXP);
     rcpp_result_gen = Rcpp::wrap(init_prepare(from, to, dist, gamma));
     return rcpp_result_gen;

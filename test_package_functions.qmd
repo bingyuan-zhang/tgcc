@@ -11,8 +11,9 @@ editor: visual
 Source the functions
 
 ```{r}
-Rcpp::sourceCpp("./src/main.cpp")
+Rcpp::sourceCpp("./src/main_init.cpp")
 Rcpp::sourceCpp("./src/main_dp.cpp")
+Rcpp::sourceCpp("./src/main_update.cpp")
 source("./R/tgCC.R")
 source("./R/initialization.R")
 source("./R/FunPlotOut.R")
@@ -42,22 +43,32 @@ make.mixgaussian <- function(n) {
 
 ```
 
-Show plot and results
+## test 1
 
 ```{r}
+#| cache: true
+#| message: false
 set.seed(1)
 dl <- make.mixgaussian(n = 400)
 data <- dl$data
 lab <- dl$label
 plot(data, col=lab)
+lamseq <- seq(20, 2000, length.out = 10000)
+tgcc.fit <- tgCC(data, lamseq, dth = 30)
+make_dendrogram(tgcc.fit, lab)
 ```
 
-## Apply TGCC
+### test 2
 
 ```{r}
 #| cache: true
 #| message: false
-lamseq <- seq(20, 2000, length.out = 10000)
-tgcc.fit <- tgCC(data, lamseq, dth = 30)
+set.seed(321)
+dl <- make.mixgaussian(n = 1000)
+data <- dl$data
+lab <- dl$label
+plot(data, col=lab)
+lamseq <- seq(20, 50000, length.out = 10000)
+tgcc.fit <- tgCC(data, lamseq, dth = 100)
 make_dendrogram(tgcc.fit, lab)
 ```
