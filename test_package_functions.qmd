@@ -70,5 +70,5 @@ lab <- dl$label
 plot(data, col=lab)
 lamseq <- seq(20, 50000, length.out = 10000)
 tgcc.fit <- tgCC(data, lamseq, dth = 100)
-make_dendrogram(tgcc.fit, lab)
+make_dendrogram(tgcc.fit, lab) 
 ```
