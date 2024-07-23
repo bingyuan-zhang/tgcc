@@ -8,15 +8,22 @@ execute:
 editor: visual
 ---
 
-Source the functions
+## R library
 
 ```{r}
+# | echo: false
+library(dplyr)
+```
+
+## Source 
+
+```{r}
+# | echo: false
 Rcpp::sourceCpp("./src/main_init.cpp")
 Rcpp::sourceCpp("./src/main_dp.cpp")
 Rcpp::sourceCpp("./src/main_update.cpp")
 source("./R/tgCC.R")
-source("./R/initialization.R")
-source("./R/FunPlotOut.R")
+source("./R/utils.R")
 ```
 
 ## Prepare testing data set
@@ -40,22 +47,45 @@ make.mixgaussian <- function(n) {
   label = c(rep(1,n1), rep(2,n2), rep(3,n3))
   return(list(data = data, label = label))
 }
-
 ```
 
-## test 1
+## test tgCC
+
+#### test tgcc()
+
+#### test makeDendrogram()
 
 ```{r}
-#| cache: true
+#| cache: false
 #| message: false
 set.seed(1)
 dl <- make.mixgaussian(n = 400)
 data <- dl$data
-lab <- dl$label
-plot(data, col=lab)
+label <- dl$label
+plot(data, col=label)
+
 lamseq <- seq(20, 2000, length.out = 10000)
-tgcc.fit <- tgCC(data, lamseq, dth = 30)
-make_dendrogram(tgcc.fit, lab)
+tgccFit <-
+  tgCC(data = data, lambdaSeq = lamseq, depthThresh = 30)
+makeDendrogram(tgccFit, label)
+```
+
+#### test tgccFit
+
+```{r}
+dim(tgccFit$theta[[100]])
+all(tgccFit$data == data)
+lapply(tgccFit$pointer, length) %>% unlist() %>% table
+
+```
+
+#### test predLabel()
+
+predLabel function
+
+```{r}
+predLabel <- clusterLabel(tgccFit, numClusters=3)
+1-mclust::classError(label, predLabel)$errorRate
 ```
 
 ### test 2
@@ -66,9 +96,21 @@ make_dendrogram(tgcc.fit, lab)
 set.seed(321)
 dl <- make.mixgaussian(n = 1000)
 data <- dl$data
-lab <- dl$label
-plot(data, col=lab)
+label <- dl$label
+plot(data, col=label)
+
 lamseq <- seq(20, 50000, length.out = 10000)
-tgcc.fit <- tgCC(data, lamseq, dth = 100)
-make_dendrogram(tgcc.fit, lab) 
+tgccFit <- tgCC(data = data, lambdaSeq = lamseq, bandwidth = NULL, useNorm = TRUE, depthThresh = 100, probThresh = 0.3)
+makeDendrogram(tgccFit, label) 
+```
+
+```{r}
+predLabel <- clusterLabel(tgccFit, numClusters=3)
+1-mclust::classError(label, predLabel)$errorRate
+```
+
+## Test Extension BiTgcc / SpTgcc
+
+```{r}
+
 ```

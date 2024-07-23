@@ -1,246 +1,267 @@
 #include <RcppArmadillo.h>
-#include "extension.h"
+#include "computeTheta.h"
+using namespace Rcpp;
 
 // [[Rcpp::depends(RcppArmadillo)]]
 
-double loss_func_fista(const arma::colvec & y,
-                       const arma::colvec & x,
-                       double lam) {
-  double term1 = pow(arma::norm(y - x, 2), 2) / 2 ;
-  double term2 = lam * arma::norm(x, 2);
+// Calculate the loss function for FISTA
+double lossFuncFista(
+    const arma::colvec &y,
+    const arma::colvec &x,
+    double lambda) {
+
+  double term1 = 0.5 * std::pow(arma::norm(y - x, 2), 2);
+  double term2 = lambda * arma::norm(x, 2);
+
   return term1 + term2;
 }
 
-arma::colvec fista_descent(const arma::colvec & y,
-  double lam,
-  int maxiter) {
+// Perform FISTA (Fast Iterative Shrinkage-Thresholding Algorithm) descent
+arma::colvec fistaDescent(
+    const arma::colvec & y,
+    double lambda,
+    int maxIter) {
+
   int n = y.n_elem;
-  arma::colvec x_old(n);
-  arma::colvec x_new(n);
-  arma::colvec v_old(n);
-  arma::colvec v_new(n);
-  arma::colvec u_tmp(n);
+  arma::colvec xOld(n);
+  arma::colvec xNew(n);
+  arma::colvec vOld(n);
+  arma::colvec vNew(n);
+  arma::colvec uTmp(n);
   arma::colvec uu(n);
   arma::colvec u(n);
-  arma::colvec loss(maxiter);
+  arma::colvec loss(maxIter);
 
-  double loss_old = 1e5;
+  double lossOld = arma::datum::inf;
   double t;
-  double thresh;
-  double loss_new;
+  double threshold;
+  double lossNew;
   bool descent;
-  int no_descent_tol = 10;
-  int no_descent = 0;
+  int noDescentTol = 10; // Constant for no descent tolerance
+  int noDescent = 0;
 
-  for (int iter = 0; iter < maxiter; ++iter) {
+  for (int iter = 0; iter < maxIter; ++iter) {
 
     // FISTA step
     t = 2.0 / (iter + 2);
 
-    uu = (1 - t) * x_old + t * v_old;
-    u_tmp = uu - 0.5 * (uu - y);
-    thresh = std::max(0.0, 1.0 - lam / arma::norm(u_tmp,2) );
-    u = u_tmp * thresh;
+    uu = (1 - t) * xOld + t * vOld;
+    uTmp = uu - 0.5 * (uu - y);
+    threshold = std::max(0.0, 1.0 - lambda / arma::norm(uTmp,2) );
+    u = uTmp * threshold;
 
-    loss_new = loss_func_fista(y, u, lam);
+    lossNew = lossFuncFista(y, u, lambda);
+    descent = lossNew < lossOld;
 
-    descent = loss_new < loss_old;
     if (descent) {
-      x_new = u;
-      loss_old = loss_new;
-      no_descent = 0;
+      xNew = u;
+      lossOld = lossNew;
+      noDescent = 0;
     } else {
-      x_new = x_old;
-      no_descent++;
+      xNew = xOld;
+      noDescent++;
     }
 
-    v_new = x_old + 1 / t * (u - x_old);
+    vNew = xOld + 1 / t * (u - xOld);
 
-    if (no_descent >= no_descent_tol) break;
+    if (noDescent >= noDescentTol) break;
 
-    x_old = x_new;
-    v_old = v_new;
-    loss[iter] = loss_old;
+    xOld = xNew;
+    vOld = vNew;
+    loss[iter] = lossOld;
   }
 
-  return x_old;
+  return xOld;
 }
 
-double calculate_sparseclustering_loss(const arma::mat& data,
-                                       const arma::mat& U,
-                                       double lam,
-                                       double gam) {
+// Calculate the sparse clustering loss function
+double SparseClusteringLoss(
+    const arma::mat& data,
+    const arma::mat& U,
+    double lambda,
+    double gamma) {
 
-  double term1 = 0.5 * arma::norm(data - U, "fro") * arma::norm(data - U, "fro");
-  int n = data.n_rows;
-  int p = data.n_cols;
+  double term1 = 0.5 * std::pow(arma::norm(data - U, "fro"), 2);
+
+  int numRows = data.n_rows;
+  int numCols = data.n_cols;
   double term2 = 0;
   double term3 = 0;
 
   // term 2
-  for (int i = 0; i < p; ++i) {
-    for (int j = i + 1; j < p; ++j) {
-      term2 += sum(abs(U.col(i) - U.col(j)));
+  for (int i = 0; i < numCols; ++i) {
+    for (int j = i + 1; j < numCols; ++j) {
+      term2 += arma::sum(arma::abs(U.col(i) - U.col(j)));
     }
   }
   // term 3
-  for (int i = 0; i < n; ++i) {
-    term3 += norm(U.row(i), 2);
+  for (int i = 0; i < numRows; ++i) {
+    term3 += arma::norm(U.row(i), 2);
   }
 
-  return (term1 + lam*term2 + gam*term3);
+  return (term1 + lambda * term2 + gamma * term3);
 }
 
 // [[Rcpp::export]]
-arma::mat updateUSC(const arma::mat& U,
-                    const arma::mat& U0,
-                    double lam,
-                    double gam,
-                    int max_iter,
-                    double precision_thres,
-                    const std::vector<double>& V,
-                    const std::vector<double>& Type,
-                    const std::vector<double>& Pa,
-                    const std::vector<double>& WV,
-                    const std::vector<double>& WE,
-                    const std::vector<std::vector<double>>& C) {
+arma::mat updateUSC(
+    const arma::mat& dataMatrix,
+    const arma::mat& initialMatrix,
+    double lambda,
+    double gamma,
+    int maxIterations,
+    double precisionThreshold,
+    const std::vector<double>& vertices,
+    const std::vector<double>& nodeTypes,
+    const std::vector<double>& parents,
+    const std::vector<double>& nodeWeights,
+    const std::vector<double>& edgeWeights,
+    const std::vector<std::vector<double>>& childrenList) {
 
-  int n = U.n_rows;
-  int p = U.n_cols;
+  int numRows = dataMatrix.n_rows;
+  int numCols = dataMatrix.n_cols;
 
-  arma::mat Unew = U0;
-  arma::mat P = arma::zeros(n, p);
-  arma::mat Q = arma::zeros(n, p);
-  arma::mat Y = arma::zeros(n, p);
+  arma::mat updatedMatrix = initialMatrix;
+  arma::mat P = arma::zeros(numRows, numCols);
+  arma::mat Q = arma::zeros(numRows, numCols);
+  arma::mat Y = arma::zeros(numRows, numCols);
 
-  arma::vec diff_iter = arma::zeros(max_iter);
-  arma::vec loss_iter = arma::zeros(max_iter);
+  arma::vec diffIter = arma::zeros(maxIterations);
+  arma::vec lossIter = arma::zeros(maxIterations);
 
   double diff = arma::datum::inf;
-  double loss_old = calculate_sparseclustering_loss(U0, U0, lam, gam);
-  double loss_cur;
+  double previousLoss = SparseClusteringLoss(initialMatrix, initialMatrix, lambda, gamma);
+  double currentLoss;
 
-  std::vector<double> tempcol(n);
-  std::vector<double> tempcolres(n);
+  std::vector<double> tempColumn(numRows);
+  std::vector<double> tempColumnResult(numRows);
 
-  for (int iter = 0; iter < max_iter; ++iter) {
+  for (int iter = 0; iter < maxIterations; ++iter) {
 
     // Update Y
-    for (int j = 0; j < p; ++j) {
-      Y.col(j) = fista_descent(Unew.col(j) + P.col(j), gam, max_iter);
+    for (int j = 0; j < numCols; ++j) {
+      Y.col(j) = fistaDescent(updatedMatrix.col(j) + P.col(j), gamma, maxIterations);
 
-      P.col(j) = Unew.col(j) + P.col(j) - Y.col(j);
+      P.col(j) = updatedMatrix.col(j) + P.col(j) - Y.col(j);
 
-      tempcol = arma::conv_to < std::vector<double> > ::from(Y.col(j) + Q.col(j));
-      tempcolres = dp (tempcol, lam, V, Type, Pa, WV, WE, C);
-      Unew.col(j) = arma::conv_to< arma::colvec > ::from(tempcolres);
+      tempColumn = arma::conv_to<std::vector<double>>::from(Y.col(j) + Q.col(j));
+      tempColumnResult = computeTheta(tempColumn, lambda, vertices, nodeTypes, parents, nodeWeights, edgeWeights, childrenList);
+      updatedMatrix.col(j) = arma::conv_to<arma::colvec>::from(tempColumnResult);
 
-      Q.col(j) = Y.col(j) + Q.col(j) - Unew.col(j);
+      Q.col(j) = Y.col(j) + Q.col(j) - updatedMatrix.col(j);
     }
 
     // Calculate current loss and check convergence
-    loss_cur = calculate_sparseclustering_loss(U0, Unew, lam, gam);
+    currentLoss = SparseClusteringLoss(initialMatrix, updatedMatrix, lambda, gamma);
 
-    diff = std::abs(loss_cur - loss_old) / loss_old;
-    loss_iter(iter) = loss_cur;
-    diff_iter(iter) = diff;
-    loss_old = loss_cur;
+    diff = std::abs(currentLoss - previousLoss) / previousLoss;
+    lossIter(iter) = currentLoss;
+    diffIter(iter) = diff;
+    previousLoss = currentLoss;
 
-    if (diff < precision_thres) {
+    if (diff < precisionThreshold) {
       break;
     }
 
   }
 
-  return Unew;
+  return updatedMatrix;
 }
 
 
-double calculate_biclustering_loss(const arma::mat& data,
-                                   const arma::mat& U,
-                                   double lam,
-                                   double gam) {
+double BiClusteringLoss(const arma::mat& data,
+                        const arma::mat& U,
+                        double lambda,
+                        double gamma) {
 
-  double term1 = 0.5 * arma::norm(data - U, "fro") * arma::norm(data - U, "fro");
-  int n = data.n_rows;
-  int p = data.n_cols;
+  double term1 = 0.5 * std::pow(arma::norm(data - U, "fro"), 2);
+  int numRows = data.n_rows;
+  int numCols = data.n_cols;
   double term2 = 0;
   double term3 = 0;
 
   // term 2
-  for (int i = 0; i < p; ++i) {
-    for (int j = i + 1; j < p; ++j) {
-      term2 += sum(abs(U.col(i) - U.col(j)));
+  for (int i = 0; i < numCols; ++i) {
+    for (int j = i + 1; j < numCols; ++j) {
+      term2 += arma::sum(arma::abs(U.col(i) - U.col(j)));
     }
   }
   // term 3
-  for (int i = 0; i < n; ++i) {
-    for (int j = i + 1; j < n; ++j) {
-      term3 += sum(abs(U.row(i) - U.row(j)));
+  for (int i = 0; i < numRows; ++i) {
+    for (int j = i + 1; j < numRows; ++j) {
+      term3 += arma::sum(arma::abs(U.row(i) - U.row(j)));
     }
   }
 
-  return (term1 + lam*term2 + gam*term3);
+  return (term1 + lambda * term2 + gamma * term3);
 }
 
 // [[Rcpp::export]]
-arma::mat updateUBC(const arma::mat& U, const arma::mat& U0,
-                    double lam, double gam, int max_iter, double precision_thres,
-                    const std::vector<double>& V_s, const std::vector<double>& Type_s, const std::vector<double>& Pa_s,
-                    const std::vector<double>& WV_s, const std::vector<double>& WE_s, const std::vector<std::vector<double>>& C_s,
-                    const std::vector<double>& V_f, const std::vector<double>& Type_f, const std::vector<double>& Pa_f,
-                    const std::vector<double>& WV_f, const std::vector<double>& WE_f, const std::vector<std::vector<double>>& C_f) {
+arma::mat updateUBC(
+    const arma::mat& dataMatrix, const arma::mat& initialMatrix,
+    double lambda, double gamma, int maxIterations, double precisionThreshold,
+    const std::vector<double>& verticesSamples,
+    const std::vector<double>& typesSamples,
+    const std::vector<double>& parentsSamples,
+    const std::vector<double>& nodeWeightsSamples,
+    const std::vector<double>& edgeWeightsSamples,
+    const std::vector<std::vector<double>>& childrenListSamples,
+    const std::vector<double>& verticesFeatures,
+    const std::vector<double>& typesFeatures,
+    const std::vector<double>& parentsFeatures,
+    const std::vector<double>& nodeWeightsFeatures,
+    const std::vector<double>& edgeWeightsFeatures,
+    const std::vector<std::vector<double>>& childrenListFeatures) {
 
-  int n = U.n_rows;
-  int p = U.n_cols;
+  int numRows = dataMatrix.n_rows;
+  int numCols = dataMatrix.n_cols;
 
-  arma::mat Unew = U;
-  arma::mat P = arma::zeros(n, p);
-  arma::mat Q = arma::zeros(n, p);
-  arma::mat Y = arma::zeros(n, p);
+  arma::mat updatedMatrix = initialMatrix;
+  arma::mat P = arma::zeros(numRows, numCols);
+  arma::mat Q = arma::zeros(numRows, numCols);
+  arma::mat Y = arma::zeros(numRows, numCols);
 
-  arma::vec diff_iter = arma::zeros(max_iter);
-  arma::vec loss_iter = arma::zeros(max_iter);
+  arma::vec diffIter = arma::zeros(maxIterations);
+  arma::vec lossIter = arma::zeros(maxIterations);
 
   double diff = arma::datum::inf;
-  double loss_old = calculate_biclustering_loss(U0, U0, lam, gam);
-  double loss_cur;
-  std::vector<double> tempcol(n);
-  std::vector<double> tempcolres(n);
-  std::vector<double> temprow(p);
-  std::vector<double> temprowres(p);
+  double previousLoss = BiClusteringLoss(initialMatrix, initialMatrix, lambda, gamma);
+  double currentLoss;
 
+  std::vector<double> tempCol(numRows);
+  std::vector<double> tempColResult(numRows);
+  std::vector<double> tempRow(numCols);
+  std::vector<double> tempRowResult(numCols);
 
-  for (int iter = 0; iter < max_iter; ++iter) {
+  for (int iter = 0; iter < maxIterations; ++iter) {
 
     // Update Y
-    for (int j = 0; j < p; ++j) {
-      tempcol = arma::conv_to < std::vector<double> > ::from(Unew.col(j) + P.col(j));
-      tempcolres = dp (tempcol, lam, V_s, Type_s, Pa_s, WV_s, WE_s, C_s);
-      Y.col(j) = arma::conv_to< arma::colvec >::from(tempcolres);
+    for (int j = 0; j < numCols; ++j) {
+      tempCol = arma::conv_to<std::vector<double>>::from(updatedMatrix.col(j) + P.col(j));
+      tempColResult = computeTheta(tempCol, lambda, verticesSamples, typesSamples, parentsSamples, nodeWeightsSamples, edgeWeightsSamples, childrenListSamples);
+      Y.col(j) = arma::conv_to<arma::colvec>::from(tempColResult);
     }
     // Update P
-    P = Unew + P - Y;
+    P = updatedMatrix + P - Y;
 
     // Update U
-    for (int j = 0; j < n; ++j) {
-      temprow = arma::conv_to<std::vector<double>> ::from(Y.row(j) + Q.row(j));
-      temprowres = dp (temprow, gam, V_f, Type_f, Pa_f, WV_f, WE_f, C_f);
-      Unew.row(j) = arma::conv_to< arma::rowvec >::from(temprowres);
+    for (int j = 0; j < numRows; ++j) {
+      tempRow = arma::conv_to<std::vector<double>>::from(Y.row(j) + Q.row(j));
+      tempRowResult = computeTheta(tempRow, gamma, verticesFeatures, typesFeatures, parentsFeatures, nodeWeightsFeatures, edgeWeightsFeatures, childrenListFeatures);
+      updatedMatrix.row(j) = arma::conv_to<arma::rowvec>::from(tempRowResult);
     }
 
     // Update Q
-    Q = Y + Q - Unew;
+    Q = Y + Q - updatedMatrix;
 
     // Calculate current loss and check convergence
-    loss_cur = calculate_biclustering_loss(U0, Unew, lam, gam);
-    diff = std::abs((loss_cur - loss_old) / loss_old);
+    currentLoss = BiClusteringLoss(initialMatrix, updatedMatrix, lambda, gamma);
+    diff = std::abs((currentLoss - previousLoss) / previousLoss);
 
-    loss_iter(iter) = loss_cur;
-    diff_iter(iter) = diff;
-    loss_old = loss_cur;
+    lossIter(iter) = currentLoss;
+    diffIter(iter) = diff;
+    previousLoss = currentLoss;
 
-    if (diff < precision_thres) break;
+    if (diff < precisionThreshold) break;
   }
-  return Unew;
+  return updatedMatrix;
 }

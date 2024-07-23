@@ -1,23 +1,3 @@
-#' obtain the matrices for tgcc
-#'
-#' @param tgcc.fit
-#' @export
-obtain_matrices_tgcc <- function(tgcc.fit){
-
-  data <- tgcc.fit$data
-  coord <- tgcc.fit$coord
-  pointer <- tgcc.fit$pointer
-
-  Theta <- list()
-  id <- 1:nrow(data)
-
-  for(i in seq_along(coord)){
-    id <- pointer[[i]][id] + 1
-    Theta[[i]] <- coord[[i]][id,]
-  }
-  Theta
-}
-
 #' obtain the matrices for biTGCC
 #'
 #' @param bitgcc.fit

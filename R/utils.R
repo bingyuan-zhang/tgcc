@@ -1,13 +1,74 @@
-# prepare parameters of a dendrogram (m, h, iorder)
-par_dendrogram <- function(pointer, lamseq){
+initParams <- function(
+    data,
+  bandwidth = NULL,
+  normalize = TRUE) {
 
+  # Prepare the minimum spanning tree for samples.
+  tStart <- proc.time()
+  resMST <- mlpack::emst(data, naive = (ncol(data) > 10))$output
+  tEnd <- proc.time()
+  mstTime <- (tEnd - tStart)[3]
+
+  # Normalize distances between samples.
+  if (normalize) {
+    distSq <- resMST[, 3]^2
+    resMST[, 3] <- sqrt(distSq / mean(distSq))
+  }
+
+  # Use the median heuristic as bandwidth if not provided.
+  if (is.null(bandwidth)) bandwidth <- median(resMST[, 3]^2)
+
+  # Initialize parameters.
+  tStart <- proc.time()
+  params <- init_prepare(resMST[, 1], resMST[, 2], resMST[, 3], bandwidth)
+  tEnd <- proc.time()
+  initTime <- (tEnd - tStart)[3]
+
+  list(params = params, mstTime = mstTime, initTime = initTime)
+}
+
+
+initParamsBicc <- function(
+    data,
+  bandwidthSamples = NULL,
+  bandwidthFeatures = NULL,
+  normalize = TRUE) {
+
+  # Prepare minimum spanning tree for samples and features.
+  resMSTSamples <- mlpack::emst(data, naive = (ncol(data) > 10))$output
+  resMSTFeatures <- mlpack::emst(t(data), naive = (nrow(data) > 10))$output
+
+  # Normalize distances.
+  if (normalize) {
+    distSqSamples <- resMSTSamples[, 3]^2
+    resMSTSamples[, 3] <- sqrt(distSqSamples / mean(distSqSamples))
+    distSqFeatures <- resMSTFeatures[, 3]^2
+    resMSTFeatures[, 3] <- sqrt(distSqFeatures / mean(distSqFeatures))
+  }
+
+  # Use median heuristic for bandwidth if not provided.
+  if (is.null(bandwidthSamples)) bandwidthSamples <- median(resMSTSamples[, 3]^2)
+  if (is.null(bandwidthFeatures)) bandwidthFeatures <- median(resMSTFeatures[, 3]^2)
+
+  # Initialize parameters for samples and features.
+  paramsSamples <- init_prepare(resMSTSamples[, 1], resMSTSamples[, 2], resMSTSamples[, 3], bandwidthSamples)
+  paramsFeatures <- init_prepare(resMSTFeatures[, 1], resMSTFeatures[, 2], resMSTFeatures[, 3], bandwidthFeatures)
+
+  list(paramsSamples = paramsSamples, paramsFeatures = paramsFeatures)
+}
+
+
+# prepare parameters of a dendrogram (m, h, iorder)
+parDendrogram <- function(tgccFit) {
+
+  pointer <- tgccFit$pointer
+  lamseq <- tgccFit$lambdaSeq
   # check if all samples were merged into one final cluster
-  # if not, force the final merge
-  # and assign an arbitrary lambda value for the dendrogram
+  # if not, force the final merge and assign an arbitrary lambda value for the dendrogram
   len_pt = length(pointer)
   cluster_num = length(unique(pointer[[len_pt]]))
   if (cluster_num != 1) {
-    # message = paste("clusters are unmerged with current lambda seqence")
+    # message = paste("clusters are unmerged with current lambda sequence")
     # warning(message)
     pointer[[len_pt + 1]] = rep(0, cluster_num)
     lamseq = c(lamseq, lamseq[len_pt] * 1.5)
@@ -98,27 +159,87 @@ par_dendrogram <- function(pointer, lamseq){
   list(m = m, h = h, iorder = -iorder)
 }
 
-# make dendrogram from tgcc.fit
-ggColorHue <- function(n, l=65) {
-  hues <- seq(15, 375, length=n+1)
-  hcl(h=hues, l=l, c=100)[1:n]
+# Generate color hues for dendrogram
+ggColorHue <- function(numColors, lightness = 65) {
+  hues <- seq(15, 375, length=numColors + 1)
+  hcl(h=hues, l=lightness, c=100)[1:numColors]
 }
 
-make_dendrogram <- function(tgcc.fit, lab) {
-  pars = par_dendrogram(tgcc.fit$pointer, tgcc.fit$lamseq)
-  hc_tgcc = list(merge = pars$m, height = pars$h, order = pars$iorder)
-  class(hc_tgcc) = "hclust"
+# Make dendrogram from tgcc.fit
+makeDendrogram <- function(tgccFit, labels) {
+  params = parDendrogram(tgccFit)
+  hcTgcc = list(merge = params$m, height = params$h, order = params$iorder)
+  class(hcTgcc) = "hclust"
 
-  # define color bar
-  ggcols <- ggColorHue(length(unique(lab)))
-  barcol <- ggcols[lab[pars$iorder]]
+  # Define color bar
+  ggColors <- ggColorHue(length(unique(labels)))
+  barColors <- ggColors[labels[params$iorder]]
 
-  dhc <- as.dendrogram(hc_tgcc)
-  dendextend::labels(dhc) <- rep("", length(labels(dhc)))
+  dendrogram <- as.dendrogram(hcTgcc)
+  dendextend::labels(dendrogram) <- rep("", length(labels(dendrogram)))
 
-  plot(dhc)
-  dendextend::colored_bars(barcol, text_shift = NULL, y_shift = -50)
+  plot(dendrogram)
+
+  dendextend::colored_bars(barColors, text_shift = NULL, y_shift = -50)
 }
+
+clusterLabel <- function (tgccFit, numClusters = 2) {
+  data <- tgccFit$data
+  pointer <- tgccFit$pointer
+  lamseq <- tgccFit$lambdaSeq
+
+  if(numClusters <= 50) {
+    I = 1
+    tmpshow = length(pointer[[I]])
+    len_max = length(pointer) - 1
+    while (tmpshow >= 100 & I < len_max) {
+      I = I + 1
+      tmpshow = length(pointer[[I]])
+    }
+    if (I != 1) {
+      p = 1:nrow(data)
+      for (i in 1:(I)) {
+        pnew = pointer[[i]] + 1
+        p = pnew[p]
+      }
+    } else {
+      p = pointer[[1]] + 1
+    }
+    n = length(pointer)
+    tgccObj = list(pointer = pointer[(I+1):n], lambdaSeq = lamseq[(I+1):n])
+    pars = parDendrogram(tgccObj)
+    hcTgcc = list(merge = pars$m, height = pars$h, order = pars$iorder)
+    class(hcTgcc) = "hclust"
+    dendTgcc = as.dendrogram(hcTgcc)
+    dendLabel = dendextend::cutree(dendTgcc, k  = numClusters)
+    estlabel = dendLabel[p]
+  } else {
+    I = 1
+    tmpshow = length(pointer[[I]])
+    len_max = length(pointer) - 1
+    while (tmpshow > numClusters & I < len_max) {
+      I = I + 1
+      tmpshow = length(pointer[[I]])
+    }
+    if (I != 1) {
+      p = 1:nrow(data)
+      for (i in 1:(I-2)) {
+        pnew = pointer[[i]] + 1
+        p = pnew[p]
+      }
+    } else {
+      p = pointer[[1]] + 1
+    }
+    estlabel = p
+  }
+
+  estlabel
+}
+
+
+
+################################################################################
+# The rest are not checked
 
 # get the mode in a label sequence
 getmode <- function(v) {
@@ -189,57 +310,6 @@ pars_heat = function(tgcc.fit, label, show = 100, k = 2, showlog = FALSE){
     estlabel = est.label
   ))
 
-}
-
-clusterlabel <- function (tgcc.fit, k = 2) {
-  data = tgcc.fit$input
-  pointer = tgcc.fit$pointer
-  lamseq = tgcc.fit$lamseq
-  if(k <= 50) {
-    I = 1
-    tmpshow = length(pointer[[I]])
-    len_max = length(pointer) - 1
-    while (tmpshow >= 100 & I < len_max) {
-      I = I + 1
-      tmpshow = length(pointer[[I]])
-    }
-    if (I != 1) {
-      p = 1:nrow(data)
-      for (i in 1:(I)) {
-        pnew = pointer[[i]] + 1
-        p = pnew[p]
-      }
-    } else {
-      p = pointer[[1]] + 1
-    }
-    n = length(pointer)
-    pars = par_dendrogram(pointer[(I+1):n], lamseq[(I+1):n])
-    h.tgcc = list(merge = pars$m, height = pars$h, order = pars$iorder)
-    class(h.tgcc) = "hclust"
-    dend.tgcc = as.dendrogram(h.tgcc)
-    dend.label = dendextend::cutree(dend.tgcc, k  = k)
-    estlabel = dend.label[p]
-  } else {
-    I = 1
-    tmpshow = length(pointer[[I]])
-    len_max = length(pointer) - 1
-    while (tmpshow > k & I < len_max) {
-      I = I + 1
-      tmpshow = length(pointer[[I]])
-    }
-    if (I != 1) {
-      p = 1:nrow(data)
-      for (i in 1:(I-2)) {
-        pnew = pointer[[i]] + 1
-        p = pnew[p]
-      }
-    } else {
-      p = pointer[[1]] + 1
-    }
-    estlabel = p
-  }
-
-  return(estlabel)
 }
 
 

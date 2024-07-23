@@ -1,96 +1,87 @@
-#' tree-guided convex clustering
+#' Tree-Guided Convex Clustering
 #'
 #' @param data matrix with samples as rows and features as columns.
-#' @param lamseq tuning parameters sequence.
-#' @param bw bandwidth for the Gaussian kernel between rows.
-#' @param norm to use normalized distance if true.
-#' @param dth threshold target with in depth_thres.
-#' @param prob threshold of edge weight.
+#' @param lambdaSeq sequence of tuning parameters.
+#' @param bandwidth bandwidth for the Gaussian kernel between rows.
+#' @param useNorm logical, whether to use normalized distance. Default is TRUE.
+#' @param depthThresh depth threshold target. Default is 10.
+#' @param probThresh probability threshold for edge weight. Default is 0.1.
+#' @return A list containing the clustered results and timings.
 #' @export
-tgCC <- function(
-    data,
-    lamseq,
-    bw = NULL,
-    norm = TRUE,
-    dth = 10,
-    prob = 0.1) {
+tgCC <- function(data, lambdaSeq, bandwidth = NULL, useNorm = TRUE, depthThresh = 10, probThresh = 0.1) {
 
-  # initialize the parameters.
-  init <- init_params(data, bw, norm)
-  mst_time <- init$mst_time
-  init_time <- init$init_time
+  # Initialize the parameters
+  init <- initParams(data, bandwidth, useNorm)
+  mstTime <- init$mstTime
+  initTime <- init$initTime
   params <- init$params
 
-  # parameters for tree-guided L-1 convex clustering.
-  Tp <- params$Types
-  Pt <- params$Partitions
-  WE <- params$EdgeWeights
-  WV <- params$NodeWeights
-  V  <- params$Vertices
-  P  <- params$Parents
-  C  <- params$Children
+  # Extract parameters
+  nodeTypes <- params$Types
+  partitionSizes <- params$Partitions
+  edgeWeights <- params$EdgeWeights
+  nodeWeights <- params$NodeWeights
+  vertices <- params$Vertices
+  parents <- params$Parents
+  children <- params$Children
 
-  # set a threshold for edge weights of outliers.
-  ind <- (Pt < dth)
-  WE[ind] <- pmax(WE[ind], quantile(WE[ind], prob))
+  # Set a threshold for edge weights of outliers
+  outlierIndex <- (partitionSizes < depthThresh)
+  edgeWeights[outlierIndex] <- pmax(edgeWeights[outlierIndex], quantile(edgeWeights[outlierIndex], probThresh))
 
-  # optimization using dynamic programming.
-  Coord <- Pointer <- list()
-  U <- data
-  K <- length(lamseq)
-  fit_time <- 0
+  # Optimization using dynamic programming
+  coordinates <- pointerList <- list()
+  updatedData <- data
+  totalFitTime <- 0
 
-  for(k in 1:K) {
-    n <- nrow(U)
-    p <- ncol(U)
-    lam <- lamseq[k]
-    Theta <- matrix(0, nrow = n, ncol = p)
-
-    t_start = proc.time()
+  for (lambda in lambdaSeq) {
+    numSamples <- nrow(updatedData)
+    numFeatures <- ncol(updatedData)
+    thetaMatrix <- matrix(0, nrow = numSamples, ncol = numFeatures)
+    startTime <- proc.time()
 
     # Dynamic Programming
-    for (j in 1:p) {
-      Theta[, j] = computeTheta (U[, j], lam, V, Tp, P, WV, WE, C)
+    for (featureIdx in seq_len(numFeatures)) {
+      thetaMatrix[, featureIdx] <- computeTheta(updatedData[, featureIdx], lambda, vertices, nodeTypes, parents, nodeWeights, edgeWeights, children)
     }
 
-    # Cluster step
-    params = updatenew(Theta, U, V, Tp, P, WV, WE, C)
+    # Update parameters after clustering step
+    updatedParams <- updatenew(thetaMatrix, updatedData, vertices, nodeTypes, parents, nodeWeights, edgeWeights, children)
+    endTime <- proc.time()
+    totalFitTime <- totalFitTime + (endTime - startTime)[3]
 
-    t_end = proc.time()
-    fit_time = fit_time + t_end[3] - t_start[3]
+    # Update data and other parameters
+    updatedData  <- updatedParams$newInput
+    nodeTypes <- updatedParams$newTypes
+    edgeWeights <- updatedParams$newEdgeWeights
+    nodeWeights <- updatedParams$newNodeWeights
+    vertices  <- updatedParams$newVertices
+    children  <- updatedParams$newChildrenList
+    parents  <- updatedParams$newParents
 
-    U  <- params$newInput
-    Tp <- params$newTypes
-    WE <- params$newEdgeWeights
-    WV <- params$newNodeWeights
-    V  <- params$newVertices
-    C  <- params$newChildrenList
-    P  <- params$newParents
+    coordinates[[length(coordinates) + 1]] <- updatedData
+    pointerList[[length(pointerList) + 1]] <- updatedParams$pointer
 
-    Coord[[k]] = U
-    Pointer[[k]] = params$pointer
-
-    # break condition
-    if (length(V) == 1) break
+    # Break condition
+    if (length(vertices) == 1) break
   }
 
-  # obtain the matrices corresponding to different lambda values.
-  Theta <- list()
-  id <- 1:nrow(data)
-  for(i in seq_along(Coord)){
-    id <- Pointer[[i]][id] + 1;
-    Theta[[i]] <- Coord[[i]][id,]
+  # Obtain the matrices corresponding to different lambda values
+  thetaList <- list()
+  sampleIndices <- seq_len(nrow(data))
+  for (i in seq_along(coordinates)) {
+    sampleIndices <- pointerList[[i]][sampleIndices] + 1
+    thetaList[[i]] <- coordinates[[i]][sampleIndices, ]
   }
 
   list(
     data = data,
-    theta = Theta,
-    coord = Coord,
-    pointer = Pointer,
-    lamseq = lamseq,
-    tgcc.time = fit_time,
-    init.time = init_time,
-    mst.time = mst_time
+    theta = thetaList,
+    coordinates = coordinates,
+    pointer = pointerList,
+    lambdaSeq = lambdaSeq,
+    tgccTime = totalFitTime,
+    initTime = initTime,
+    mstTime = mstTime
   )
-
 }
