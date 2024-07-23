@@ -2,30 +2,33 @@
 % Please edit documentation in R/tgCC.R
 \name{tgCC}
 \alias{tgCC}
-\title{tree-guided convex clustering}
+\title{Tree-Guided Convex Clustering}
 \usage{
 tgCC(
-  input,
-  lamseq,
+  data,
+  lambdaSeq,
   bandwidth = NULL,
-  normalize = TRUE,
-  depth_thres = 10,
-  prob = 0.1
+  useNorm = TRUE,
+  depthThresh = 10,
+  probThresh = 0.1
 )
 }
 \arguments{
-\item{input}{matrix with samples as rows and features as columns.}
+\item{data}{matrix with samples as rows and features as columns.}
 
-\item{lamseq}{tuning parameters sequence.}
+\item{lambdaSeq}{sequence of tuning parameters.}
 
 \item{bandwidth}{bandwidth for the Gaussian kernel between rows.}
 
-\item{normalize}{to use normalized distance if true.}
+\item{useNorm}{logical, whether to use normalized distance. Default is TRUE.}
 
-\item{depth_thres}{threshold target with in depth_thres.}
+\item{depthThresh}{depth threshold target. Default is 10.}
 
-\item{prob}{threshold of edge weight.}
+\item{probThresh}{probability threshold for edge weight. Default is 0.1.}
+}
+\value{
+A list containing the clustered results and timings.
 }
 \description{
-tree-guided convex clustering
+Tree-Guided Convex Clustering
 }

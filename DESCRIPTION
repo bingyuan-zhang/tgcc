@@ -1,7 +1,7 @@
 Package: tgcc
 Type: Package
 Title: Tree Guided Convex Clustering
-Version: 0.0.9
+Version: 0.0.1
 Author: Bingyuan Zhang
 Maintainer: Bingyuan Zhang <cyouheigen@gmail.com>
 Description: 
@@ -14,8 +14,11 @@ LinkingTo:
     RcppArmadillo
 Imports: 
     Rcpp,
-    RcppArmadillo 
-RoxygenNote: 7.2.3
+    dendextend,
+    mlpack,
+    grDevices,
+    stats
+RoxygenNote: 7.3.0
 Suggests: 
     testthat (>= 3.0.0)
 Config/testthat/edition: 3

@@ -12,58 +12,76 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // updateUSC
-arma::mat updateUSC(const arma::mat& U, const arma::mat& U0, double lam, double gam, int max_iter, double precision_thres, const std::vector<double>& V, const std::vector<double>& Type, const std::vector<double>& Pa, const std::vector<double>& WV, const std::vector<double>& WE, const std::vector<std::vector<double>>& C);
-RcppExport SEXP _tgcc_updateUSC(SEXP USEXP, SEXP U0SEXP, SEXP lamSEXP, SEXP gamSEXP, SEXP max_iterSEXP, SEXP precision_thresSEXP, SEXP VSEXP, SEXP TypeSEXP, SEXP PaSEXP, SEXP WVSEXP, SEXP WESEXP, SEXP CSEXP) {
+arma::mat updateUSC(const arma::mat& dataMatrix, const arma::mat& initialMatrix, double lambda, double gamma, int maxIterations, double precisionThreshold, const std::vector<double>& vertices, const std::vector<double>& nodeTypes, const std::vector<double>& parents, const std::vector<double>& nodeWeights, const std::vector<double>& edgeWeights, const std::vector<std::vector<double>>& childrenList);
+RcppExport SEXP _tgcc_updateUSC(SEXP dataMatrixSEXP, SEXP initialMatrixSEXP, SEXP lambdaSEXP, SEXP gammaSEXP, SEXP maxIterationsSEXP, SEXP precisionThresholdSEXP, SEXP verticesSEXP, SEXP nodeTypesSEXP, SEXP parentsSEXP, SEXP nodeWeightsSEXP, SEXP edgeWeightsSEXP, SEXP childrenListSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type U(USEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type U0(U0SEXP);
-    Rcpp::traits::input_parameter< double >::type lam(lamSEXP);
-    Rcpp::traits::input_parameter< double >::type gam(gamSEXP);
-    Rcpp::traits::input_parameter< int >::type max_iter(max_iterSEXP);
-    Rcpp::traits::input_parameter< double >::type precision_thres(precision_thresSEXP);
-    Rcpp::traits::input_parameter< const std::vector<double>& >::type V(VSEXP);
-    Rcpp::traits::input_parameter< const std::vector<double>& >::type Type(TypeSEXP);
-    Rcpp::traits::input_parameter< const std::vector<double>& >::type Pa(PaSEXP);
-    Rcpp::traits::input_parameter< const std::vector<double>& >::type WV(WVSEXP);
-    Rcpp::traits::input_parameter< const std::vector<double>& >::type WE(WESEXP);
-    Rcpp::traits::input_parameter< const std::vector<std::vector<double>>& >::type C(CSEXP);
-    rcpp_result_gen = Rcpp::wrap(updateUSC(U, U0, lam, gam, max_iter, precision_thres, V, Type, Pa, WV, WE, C));
+    Rcpp::traits::input_parameter< const arma::mat& >::type dataMatrix(dataMatrixSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type initialMatrix(initialMatrixSEXP);
+    Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< double >::type gamma(gammaSEXP);
+    Rcpp::traits::input_parameter< int >::type maxIterations(maxIterationsSEXP);
+    Rcpp::traits::input_parameter< double >::type precisionThreshold(precisionThresholdSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type vertices(verticesSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type nodeTypes(nodeTypesSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type parents(parentsSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type nodeWeights(nodeWeightsSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type edgeWeights(edgeWeightsSEXP);
+    Rcpp::traits::input_parameter< const std::vector<std::vector<double>>& >::type childrenList(childrenListSEXP);
+    rcpp_result_gen = Rcpp::wrap(updateUSC(dataMatrix, initialMatrix, lambda, gamma, maxIterations, precisionThreshold, vertices, nodeTypes, parents, nodeWeights, edgeWeights, childrenList));
     return rcpp_result_gen;
 END_RCPP
 }
 // updateUBC
-arma::mat updateUBC(const arma::mat& U, const arma::mat& U0, double lam, double gam, int max_iter, double precision_thres, const std::vector<double>& V_s, const std::vector<double>& Type_s, const std::vector<double>& Pa_s, const std::vector<double>& WV_s, const std::vector<double>& WE_s, const std::vector<std::vector<double>>& C_s, const std::vector<double>& V_f, const std::vector<double>& Type_f, const std::vector<double>& Pa_f, const std::vector<double>& WV_f, const std::vector<double>& WE_f, const std::vector<std::vector<double>>& C_f);
-RcppExport SEXP _tgcc_updateUBC(SEXP USEXP, SEXP U0SEXP, SEXP lamSEXP, SEXP gamSEXP, SEXP max_iterSEXP, SEXP precision_thresSEXP, SEXP V_sSEXP, SEXP Type_sSEXP, SEXP Pa_sSEXP, SEXP WV_sSEXP, SEXP WE_sSEXP, SEXP C_sSEXP, SEXP V_fSEXP, SEXP Type_fSEXP, SEXP Pa_fSEXP, SEXP WV_fSEXP, SEXP WE_fSEXP, SEXP C_fSEXP) {
+arma::mat updateUBC(const arma::mat& dataMatrix, const arma::mat& initialMatrix, double lambda, double gamma, int maxIterations, double precisionThreshold, const std::vector<double>& verticesSamples, const std::vector<double>& typesSamples, const std::vector<double>& parentsSamples, const std::vector<double>& nodeWeightsSamples, const std::vector<double>& edgeWeightsSamples, const std::vector<std::vector<double>>& childrenListSamples, const std::vector<double>& verticesFeatures, const std::vector<double>& typesFeatures, const std::vector<double>& parentsFeatures, const std::vector<double>& nodeWeightsFeatures, const std::vector<double>& edgeWeightsFeatures, const std::vector<std::vector<double>>& childrenListFeatures);
+RcppExport SEXP _tgcc_updateUBC(SEXP dataMatrixSEXP, SEXP initialMatrixSEXP, SEXP lambdaSEXP, SEXP gammaSEXP, SEXP maxIterationsSEXP, SEXP precisionThresholdSEXP, SEXP verticesSamplesSEXP, SEXP typesSamplesSEXP, SEXP parentsSamplesSEXP, SEXP nodeWeightsSamplesSEXP, SEXP edgeWeightsSamplesSEXP, SEXP childrenListSamplesSEXP, SEXP verticesFeaturesSEXP, SEXP typesFeaturesSEXP, SEXP parentsFeaturesSEXP, SEXP nodeWeightsFeaturesSEXP, SEXP edgeWeightsFeaturesSEXP, SEXP childrenListFeaturesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type U(USEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type U0(U0SEXP);
-    Rcpp::traits::input_parameter< double >::type lam(lamSEXP);
-    Rcpp::traits::input_parameter< double >::type gam(gamSEXP);
-    Rcpp::traits::input_parameter< int >::type max_iter(max_iterSEXP);
-    Rcpp::traits::input_parameter< double >::type precision_thres(precision_thresSEXP);
-    Rcpp::traits::input_parameter< const std::vector<double>& >::type V_s(V_sSEXP);
-    Rcpp::traits::input_parameter< const std::vector<double>& >::type Type_s(Type_sSEXP);
-    Rcpp::traits::input_parameter< const std::vector<double>& >::type Pa_s(Pa_sSEXP);
-    Rcpp::traits::input_parameter< const std::vector<double>& >::type WV_s(WV_sSEXP);
-    Rcpp::traits::input_parameter< const std::vector<double>& >::type WE_s(WE_sSEXP);
-    Rcpp::traits::input_parameter< const std::vector<std::vector<double>>& >::type C_s(C_sSEXP);
-    Rcpp::traits::input_parameter< const std::vector<double>& >::type V_f(V_fSEXP);
-    Rcpp::traits::input_parameter< const std::vector<double>& >::type Type_f(Type_fSEXP);
-    Rcpp::traits::input_parameter< const std::vector<double>& >::type Pa_f(Pa_fSEXP);
-    Rcpp::traits::input_parameter< const std::vector<double>& >::type WV_f(WV_fSEXP);
-    Rcpp::traits::input_parameter< const std::vector<double>& >::type WE_f(WE_fSEXP);
-    Rcpp::traits::input_parameter< const std::vector<std::vector<double>>& >::type C_f(C_fSEXP);
-    rcpp_result_gen = Rcpp::wrap(updateUBC(U, U0, lam, gam, max_iter, precision_thres, V_s, Type_s, Pa_s, WV_s, WE_s, C_s, V_f, Type_f, Pa_f, WV_f, WE_f, C_f));
+    Rcpp::traits::input_parameter< const arma::mat& >::type dataMatrix(dataMatrixSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type initialMatrix(initialMatrixSEXP);
+    Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< double >::type gamma(gammaSEXP);
+    Rcpp::traits::input_parameter< int >::type maxIterations(maxIterationsSEXP);
+    Rcpp::traits::input_parameter< double >::type precisionThreshold(precisionThresholdSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type verticesSamples(verticesSamplesSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type typesSamples(typesSamplesSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type parentsSamples(parentsSamplesSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type nodeWeightsSamples(nodeWeightsSamplesSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type edgeWeightsSamples(edgeWeightsSamplesSEXP);
+    Rcpp::traits::input_parameter< const std::vector<std::vector<double>>& >::type childrenListSamples(childrenListSamplesSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type verticesFeatures(verticesFeaturesSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type typesFeatures(typesFeaturesSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type parentsFeatures(parentsFeaturesSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type nodeWeightsFeatures(nodeWeightsFeaturesSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type edgeWeightsFeatures(edgeWeightsFeaturesSEXP);
+    Rcpp::traits::input_parameter< const std::vector<std::vector<double>>& >::type childrenListFeatures(childrenListFeaturesSEXP);
+    rcpp_result_gen = Rcpp::wrap(updateUBC(dataMatrix, initialMatrix, lambda, gamma, maxIterations, precisionThreshold, verticesSamples, typesSamples, parentsSamples, nodeWeightsSamples, edgeWeightsSamples, childrenListSamples, verticesFeatures, typesFeatures, parentsFeatures, nodeWeightsFeatures, edgeWeightsFeatures, childrenListFeatures));
     return rcpp_result_gen;
 END_RCPP
 }
-// init_prepare
-Rcpp::List init_prepare(const std::vector<double>& from, const std::vector<double>& to, const std::vector<double>& dist, double gamma);
-RcppExport SEXP _tgcc_init_prepare(SEXP fromSEXP, SEXP toSEXP, SEXP distSEXP, SEXP gammaSEXP) {
+// computeTheta
+std::vector<double> computeTheta(const std::vector<double>& nodeValues, double lambda, const std::vector<double>& vertices, const std::vector<double>& nodeTypes, const std::vector<double>& parents, const std::vector<double>& nodeWeights, const std::vector<double>& edgeWeights, const std::vector<std::vector<double>>& childrenList);
+RcppExport SEXP _tgcc_computeTheta(SEXP nodeValuesSEXP, SEXP lambdaSEXP, SEXP verticesSEXP, SEXP nodeTypesSEXP, SEXP parentsSEXP, SEXP nodeWeightsSEXP, SEXP edgeWeightsSEXP, SEXP childrenListSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type nodeValues(nodeValuesSEXP);
+    Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type vertices(verticesSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type nodeTypes(nodeTypesSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type parents(parentsSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type nodeWeights(nodeWeightsSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type edgeWeights(edgeWeightsSEXP);
+    Rcpp::traits::input_parameter< const std::vector<std::vector<double>>& >::type childrenList(childrenListSEXP);
+    rcpp_result_gen = Rcpp::wrap(computeTheta(nodeValues, lambda, vertices, nodeTypes, parents, nodeWeights, edgeWeights, childrenList));
+    return rcpp_result_gen;
+END_RCPP
+}
+// initPrepare
+Rcpp::List initPrepare(const std::vector<double>& from, const std::vector<double>& to, const std::vector<double>& dist, double gamma);
+RcppExport SEXP _tgcc_initPrepare(SEXP fromSEXP, SEXP toSEXP, SEXP distSEXP, SEXP gammaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -71,43 +89,25 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const std::vector<double>& >::type to(toSEXP);
     Rcpp::traits::input_parameter< const std::vector<double>& >::type dist(distSEXP);
     Rcpp::traits::input_parameter< double >::type gamma(gammaSEXP);
-    rcpp_result_gen = Rcpp::wrap(init_prepare(from, to, dist, gamma));
+    rcpp_result_gen = Rcpp::wrap(initPrepare(from, to, dist, gamma));
     return rcpp_result_gen;
 END_RCPP
 }
 // updatenew
-Rcpp::List updatenew(arma::mat Theta, arma::mat& input, std::vector<double>& V, std::vector<double>& T, std::vector<double>& P, std::vector<double>& WV, std::vector<double>& WE, std::vector<std::vector<double>>& C);
-RcppExport SEXP _tgcc_updatenew(SEXP ThetaSEXP, SEXP inputSEXP, SEXP VSEXP, SEXP TSEXP, SEXP PSEXP, SEXP WVSEXP, SEXP WESEXP, SEXP CSEXP) {
+Rcpp::List updatenew(arma::mat Theta, arma::mat& input, std::vector<double>& vertices, std::vector<double>& types, std::vector<double>& parents, std::vector<double>& nodeWeights, std::vector<double>& edgeWeights, std::vector<std::vector<double>>& childrenList);
+RcppExport SEXP _tgcc_updatenew(SEXP ThetaSEXP, SEXP inputSEXP, SEXP verticesSEXP, SEXP typesSEXP, SEXP parentsSEXP, SEXP nodeWeightsSEXP, SEXP edgeWeightsSEXP, SEXP childrenListSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::mat >::type Theta(ThetaSEXP);
     Rcpp::traits::input_parameter< arma::mat& >::type input(inputSEXP);
-    Rcpp::traits::input_parameter< std::vector<double>& >::type V(VSEXP);
-    Rcpp::traits::input_parameter< std::vector<double>& >::type T(TSEXP);
-    Rcpp::traits::input_parameter< std::vector<double>& >::type P(PSEXP);
-    Rcpp::traits::input_parameter< std::vector<double>& >::type WV(WVSEXP);
-    Rcpp::traits::input_parameter< std::vector<double>& >::type WE(WESEXP);
-    Rcpp::traits::input_parameter< std::vector<std::vector<double>>& >::type C(CSEXP);
-    rcpp_result_gen = Rcpp::wrap(updatenew(Theta, input, V, T, P, WV, WE, C));
-    return rcpp_result_gen;
-END_RCPP
-}
-// dp
-std::vector<double> dp(std::vector<double> x, double lam, std::vector<double> Vertice, std::vector<double> Type, std::vector<double> Parent, std::vector<double> WeightV, std::vector<double> WeightE, std::vector<std::vector<double>> Children);
-RcppExport SEXP _tgcc_dp(SEXP xSEXP, SEXP lamSEXP, SEXP VerticeSEXP, SEXP TypeSEXP, SEXP ParentSEXP, SEXP WeightVSEXP, SEXP WeightESEXP, SEXP ChildrenSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< std::vector<double> >::type x(xSEXP);
-    Rcpp::traits::input_parameter< double >::type lam(lamSEXP);
-    Rcpp::traits::input_parameter< std::vector<double> >::type Vertice(VerticeSEXP);
-    Rcpp::traits::input_parameter< std::vector<double> >::type Type(TypeSEXP);
-    Rcpp::traits::input_parameter< std::vector<double> >::type Parent(ParentSEXP);
-    Rcpp::traits::input_parameter< std::vector<double> >::type WeightV(WeightVSEXP);
-    Rcpp::traits::input_parameter< std::vector<double> >::type WeightE(WeightESEXP);
-    Rcpp::traits::input_parameter< std::vector<std::vector<double>> >::type Children(ChildrenSEXP);
-    rcpp_result_gen = Rcpp::wrap(dp(x, lam, Vertice, Type, Parent, WeightV, WeightE, Children));
+    Rcpp::traits::input_parameter< std::vector<double>& >::type vertices(verticesSEXP);
+    Rcpp::traits::input_parameter< std::vector<double>& >::type types(typesSEXP);
+    Rcpp::traits::input_parameter< std::vector<double>& >::type parents(parentsSEXP);
+    Rcpp::traits::input_parameter< std::vector<double>& >::type nodeWeights(nodeWeightsSEXP);
+    Rcpp::traits::input_parameter< std::vector<double>& >::type edgeWeights(edgeWeightsSEXP);
+    Rcpp::traits::input_parameter< std::vector<std::vector<double>>& >::type childrenList(childrenListSEXP);
+    rcpp_result_gen = Rcpp::wrap(updatenew(Theta, input, vertices, types, parents, nodeWeights, edgeWeights, childrenList));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -115,9 +115,9 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_tgcc_updateUSC", (DL_FUNC) &_tgcc_updateUSC, 12},
     {"_tgcc_updateUBC", (DL_FUNC) &_tgcc_updateUBC, 18},
-    {"_tgcc_init_prepare", (DL_FUNC) &_tgcc_init_prepare, 4},
+    {"_tgcc_computeTheta", (DL_FUNC) &_tgcc_computeTheta, 8},
+    {"_tgcc_initPrepare", (DL_FUNC) &_tgcc_initPrepare, 4},
     {"_tgcc_updatenew", (DL_FUNC) &_tgcc_updatenew, 8},
-    {"_tgcc_dp", (DL_FUNC) &_tgcc_dp, 8},
     {NULL, NULL, 0}
 };
 

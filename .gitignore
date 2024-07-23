@@ -8,3 +8,4 @@ src/*.dll
 
 test_package_functions.qmd
 init/
+tests/

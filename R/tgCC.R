@@ -27,7 +27,7 @@ tgCC <- function(data, lambdaSeq, bandwidth = NULL, useNorm = TRUE, depthThresh 
 
   # Set a threshold for edge weights of outliers
   outlierIndex <- (partitionSizes < depthThresh)
-  edgeWeights[outlierIndex] <- pmax(edgeWeights[outlierIndex], quantile(edgeWeights[outlierIndex], probThresh))
+  edgeWeights[outlierIndex] <- pmax(edgeWeights[outlierIndex], stats::quantile(edgeWeights[outlierIndex], probThresh))
 
   # Optimization using dynamic programming
   coordinates <- pointerList <- list()

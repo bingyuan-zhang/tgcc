@@ -13,9 +13,10 @@ editor: visual
 ```{r}
 # | echo: false
 library(dplyr)
+library(tgcc)
 ```
 
-## Source 
+## Source
 
 ```{r}
 # | echo: false
@@ -67,7 +68,7 @@ plot(data, col=label)
 lamseq <- seq(20, 2000, length.out = 10000)
 tgccFit <-
   tgCC(data = data, lambdaSeq = lamseq, depthThresh = 30)
-makeDendrogram(tgccFit, label)
+tgcc:::makeDendrogram(tgccFit, label)
 ```
 
 #### test tgccFit
@@ -78,6 +79,8 @@ all(tgccFit$data == data)
 lapply(tgccFit$pointer, length) %>% unlist() %>% table
 
 ```
+
+![](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAaCAYAAADFTB7LAAAAcElEQVR4Xu3OwQmAQAxE0bClWYCW5N06tM6V2YPg5CjoF/JhLoHAi6iqn9eOefUbqrYvHY0cQDLyAlKRNyARmYA0ZMLRkAlGQyaU72tkAtlim7r/vJqDUDjlKBROOQyFU2icQuMUGqfQuBEaV1XPOwEx96nYACK8+wAAAABJRU5ErkJggg== "Run Current Chunk")
 
 #### test predLabel()
 

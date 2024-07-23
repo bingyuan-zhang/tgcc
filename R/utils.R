@@ -1,7 +1,7 @@
 initParams <- function(
     data,
-  bandwidth = NULL,
-  normalize = TRUE) {
+    bandwidth = NULL,
+    normalize = TRUE) {
 
   # Prepare the minimum spanning tree for samples.
   tStart <- proc.time()
@@ -16,23 +16,22 @@ initParams <- function(
   }
 
   # Use the median heuristic as bandwidth if not provided.
-  if (is.null(bandwidth)) bandwidth <- median(resMST[, 3]^2)
+  if (is.null(bandwidth)) bandwidth <- stats::median(resMST[, 3]^2)
 
   # Initialize parameters.
   tStart <- proc.time()
-  params <- init_prepare(resMST[, 1], resMST[, 2], resMST[, 3], bandwidth)
+  params <- initPrepare(resMST[, 1], resMST[, 2], resMST[, 3], bandwidth)
   tEnd <- proc.time()
   initTime <- (tEnd - tStart)[3]
 
   list(params = params, mstTime = mstTime, initTime = initTime)
 }
 
-
 initParamsBicc <- function(
     data,
-  bandwidthSamples = NULL,
-  bandwidthFeatures = NULL,
-  normalize = TRUE) {
+    bandwidthSamples = NULL,
+    bandwidthFeatures = NULL,
+    normalize = TRUE) {
 
   # Prepare minimum spanning tree for samples and features.
   resMSTSamples <- mlpack::emst(data, naive = (ncol(data) > 10))$output
@@ -47,12 +46,12 @@ initParamsBicc <- function(
   }
 
   # Use median heuristic for bandwidth if not provided.
-  if (is.null(bandwidthSamples)) bandwidthSamples <- median(resMSTSamples[, 3]^2)
-  if (is.null(bandwidthFeatures)) bandwidthFeatures <- median(resMSTFeatures[, 3]^2)
+  if (is.null(bandwidthSamples)) bandwidthSamples <- stats::median(resMSTSamples[, 3]^2)
+  if (is.null(bandwidthFeatures)) bandwidthFeatures <- stats::median(resMSTFeatures[, 3]^2)
 
   # Initialize parameters for samples and features.
-  paramsSamples <- init_prepare(resMSTSamples[, 1], resMSTSamples[, 2], resMSTSamples[, 3], bandwidthSamples)
-  paramsFeatures <- init_prepare(resMSTFeatures[, 1], resMSTFeatures[, 2], resMSTFeatures[, 3], bandwidthFeatures)
+  paramsSamples <- initPrepare(resMSTSamples[, 1], resMSTSamples[, 2], resMSTSamples[, 3], bandwidthSamples)
+  paramsFeatures <- initPrepare(resMSTFeatures[, 1], resMSTFeatures[, 2], resMSTFeatures[, 3], bandwidthFeatures)
 
   list(paramsSamples = paramsSamples, paramsFeatures = paramsFeatures)
 }
@@ -162,7 +161,7 @@ parDendrogram <- function(tgccFit) {
 # Generate color hues for dendrogram
 ggColorHue <- function(numColors, lightness = 65) {
   hues <- seq(15, 375, length=numColors + 1)
-  hcl(h=hues, l=lightness, c=100)[1:numColors]
+  grDevices::hcl(h=hues, l=lightness, c=100)[1:numColors]
 }
 
 # Make dendrogram from tgcc.fit
@@ -175,13 +174,14 @@ makeDendrogram <- function(tgccFit, labels) {
   ggColors <- ggColorHue(length(unique(labels)))
   barColors <- ggColors[labels[params$iorder]]
 
-  dendrogram <- as.dendrogram(hcTgcc)
+  dendrogram <- stats::as.dendrogram(hcTgcc)
   dendextend::labels(dendrogram) <- rep("", length(labels(dendrogram)))
 
   plot(dendrogram)
 
   dendextend::colored_bars(barColors, text_shift = NULL, y_shift = -50)
 }
+
 
 clusterLabel <- function (tgccFit, numClusters = 2) {
   data <- tgccFit$data
@@ -210,7 +210,7 @@ clusterLabel <- function (tgccFit, numClusters = 2) {
     pars = parDendrogram(tgccObj)
     hcTgcc = list(merge = pars$m, height = pars$h, order = pars$iorder)
     class(hcTgcc) = "hclust"
-    dendTgcc = as.dendrogram(hcTgcc)
+    dendTgcc = stats::as.dendrogram(hcTgcc)
     dendLabel = dendextend::cutree(dendTgcc, k  = numClusters)
     estlabel = dendLabel[p]
   } else {
@@ -240,102 +240,102 @@ clusterLabel <- function (tgccFit, numClusters = 2) {
 
 ################################################################################
 # The rest are not checked
-
-# get the mode in a label sequence
-getmode <- function(v) {
-  uniqv <- unique(v)
-  uniqv[which.max(tabulate(match(v, uniqv)))]
-}
-
-# prepare the parameters in the heatmap.
-# data/label are the input/true labels
-# tgcc.fit.pointer/lamseqnew are obtained from the result of the TGCC function
-# show is the intermediate cluster number
-# k is the given cluster number of TGCC
-pars_heat = function(tgcc.fit, label, show = 100, k = 2, showlog = FALSE){
-
-  data = tgcc.fit$input
-  tgcc.fit.pointer = tgcc.fit$pointer
-  lamseqnew = tgcc.fit$lamseq
-
-  I = 1
-  tmpshow = length(tgcc.fit.pointer[[I]])
-  while (tmpshow >= show) {
-    I = I + 1
-    tmpshow = length(tgcc.fit.pointer[[I]])
-  }
-  if (I != 1) {
-    p = 1:nrow(data)
-    for (i in 1:(I)) {
-      pnew = tgcc.fit.pointer[[i]] + 1
-      p = pnew[p]
-    }
-  } else {
-    p = tgcc.fit.pointer[[1]] + 1
-  }
-  datanew = matrix(nrow = tmpshow, ncol = ncol(data))
-  labelnew = rep(0, tmpshow)
-
-  for (i in 1:length(unique(p))) {
-    if (sum(p == i) != 1) {
-      datanew[i,] = colSums(data[p == i,]) / sum(p == i)
-      labelnew[i] = getmode(label[p == i])
-    } else {
-      datanew[i,] = data[p == i, ]
-      labelnew[i] = label[p == i]
-    }
-  }
-  n = length(tgcc.fit.pointer)
-
-  pars2 = par_dendrogram(tgcc.fit.pointer[(I+1):n], lamseqnew[(I+1):n])
-
-  if(showlog == FALSE) {
-    showheight = pars2$h
-  } else {
-    showheight = log(pars2$h, base = showlog)
-  }
-
-  h.tgcc2 = list(merge = pars2$m, height = showheight, order = pars2$iorder)
-  class(h.tgcc2) = "hclust"
-  dend.tgcc2 = as.dendrogram(h.tgcc2)
-  labelnew = labelnew[pars2$iorder]
-  datanew = datanew[pars2$iorder,]
-  dend.label = dendextend::cutree(dend.tgcc2, k  = k)
-  est.label = dend.label[p]
-
-  return(list(
-    datanew = datanew,
-    dend = dend.tgcc2,
-    rowcolor = labelnew,
-    estlabel = est.label
-  ))
-
-}
-
-
-# prepare the dataframe corresponding to the clusterpath
-path_df <- function (tgcc.fit) {
-  data = tgcc.fit$input
-  n = nrow(data)
-  p = ncol(data)
-  K = length(tgcc.fit$coord)
-
-  idx = 1:n
-  df = as.data.frame(data[idx, ])
-  colnames(df) <- c("x", "y")
-  df$groups = 1:n
-  df$step = rep(0,n)
-
-  for(k in 1:K){
-    coord = matrix(tgcc.fit$coord[[k]], ncol = p)
-    idx.new = tgcc.fit$pointer[[k]] + 1
-    idx = idx.new[idx]
-    df.new = as.data.frame(coord[idx, ])
-    colnames(df.new) <- c("x", "y")
-    df.new$groups = 1:n
-    df.new$step = rep(k,n)
-    df = rbind(df, df.new)
-  }
-
-  return(df)
-}
+#
+# # get the mode in a label sequence
+# getmode <- function(v) {
+#   uniqv <- unique(v)
+#   uniqv[which.max(tabulate(match(v, uniqv)))]
+# }
+#
+# # prepare the parameters in the heatmap.
+# # data/label are the input/true labels
+# # tgcc.fit.pointer/lamseqnew are obtained from the result of the TGCC function
+# # show is the intermediate cluster number
+# # k is the given cluster number of TGCC
+# pars_heat = function(tgcc.fit, label, show = 100, k = 2, showlog = FALSE){
+#
+#   data = tgcc.fit$input
+#   tgcc.fit.pointer = tgcc.fit$pointer
+#   lamseqnew = tgcc.fit$lamseq
+#
+#   I = 1
+#   tmpshow = length(tgcc.fit.pointer[[I]])
+#   while (tmpshow >= show) {
+#     I = I + 1
+#     tmpshow = length(tgcc.fit.pointer[[I]])
+#   }
+#   if (I != 1) {
+#     p = 1:nrow(data)
+#     for (i in 1:(I)) {
+#       pnew = tgcc.fit.pointer[[i]] + 1
+#       p = pnew[p]
+#     }
+#   } else {
+#     p = tgcc.fit.pointer[[1]] + 1
+#   }
+#   datanew = matrix(nrow = tmpshow, ncol = ncol(data))
+#   labelnew = rep(0, tmpshow)
+#
+#   for (i in 1:length(unique(p))) {
+#     if (sum(p == i) != 1) {
+#       datanew[i,] = colSums(data[p == i,]) / sum(p == i)
+#       labelnew[i] = getmode(label[p == i])
+#     } else {
+#       datanew[i,] = data[p == i, ]
+#       labelnew[i] = label[p == i]
+#     }
+#   }
+#   n = length(tgcc.fit.pointer)
+#
+#   pars2 = par_dendrogram(tgcc.fit.pointer[(I+1):n], lamseqnew[(I+1):n])
+#
+#   if(showlog == FALSE) {
+#     showheight = pars2$h
+#   } else {
+#     showheight = log(pars2$h, base = showlog)
+#   }
+#
+#   h.tgcc2 = list(merge = pars2$m, height = showheight, order = pars2$iorder)
+#   class(h.tgcc2) = "hclust"
+#   dend.tgcc2 = stats::as.dendrogram(h.tgcc2)
+#   labelnew = labelnew[pars2$iorder]
+#   datanew = datanew[pars2$iorder,]
+#   dend.label = dendextend::cutree(dend.tgcc2, k  = k)
+#   est.label = dend.label[p]
+#
+#   return(list(
+#     datanew = datanew,
+#     dend = dend.tgcc2,
+#     rowcolor = labelnew,
+#     estlabel = est.label
+#   ))
+#
+# }
+#
+#
+# # prepare the dataframe corresponding to the clusterpath
+# path_df <- function (tgcc.fit) {
+#   data = tgcc.fit$input
+#   n = nrow(data)
+#   p = ncol(data)
+#   K = length(tgcc.fit$coord)
+#
+#   idx = 1:n
+#   df = as.data.frame(data[idx, ])
+#   colnames(df) <- c("x", "y")
+#   df$groups = 1:n
+#   df$step = rep(0,n)
+#
+#   for(k in 1:K){
+#     coord = matrix(tgcc.fit$coord[[k]], ncol = p)
+#     idx.new = tgcc.fit$pointer[[k]] + 1
+#     idx = idx.new[idx]
+#     df.new = as.data.frame(coord[idx, ])
+#     colnames(df.new) <- c("x", "y")
+#     df.new$groups = 1:n
+#     df.new$step = rep(k,n)
+#     df = rbind(df, df.new)
+#   }
+#
+#   return(df)
+# }

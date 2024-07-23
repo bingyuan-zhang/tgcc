@@ -14,4 +14,4 @@ std::vector<double> computeTheta(
     const std::vector<double>& edgeWeights,
     const std::vector<std::vector<double>>& childrenList);
 
-#endif
+#endif // tgcc_H
