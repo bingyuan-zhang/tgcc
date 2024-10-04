@@ -5,3 +5,6 @@
 ^inst$
 ^tests$
 ^README\.md$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$

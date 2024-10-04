@@ -33,9 +33,23 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// BiClusteringLoss
+double BiClusteringLoss(const arma::mat& data, const arma::mat& U, double lambda, double gamma);
+RcppExport SEXP _tgcc_BiClusteringLoss(SEXP dataSEXP, SEXP USEXP, SEXP lambdaSEXP, SEXP gammaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type U(USEXP);
+    Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< double >::type gamma(gammaSEXP);
+    rcpp_result_gen = Rcpp::wrap(BiClusteringLoss(data, U, lambda, gamma));
+    return rcpp_result_gen;
+END_RCPP
+}
 // updateUBC
-arma::mat updateUBC(const arma::mat& dataMatrix, const arma::mat& initialMatrix, double lambda, double gamma, int maxIterations, double precisionThreshold, const std::vector<double>& verticesSamples, const std::vector<double>& typesSamples, const std::vector<double>& parentsSamples, const std::vector<double>& nodeWeightsSamples, const std::vector<double>& edgeWeightsSamples, const std::vector<std::vector<double>>& childrenListSamples, const std::vector<double>& verticesFeatures, const std::vector<double>& typesFeatures, const std::vector<double>& parentsFeatures, const std::vector<double>& nodeWeightsFeatures, const std::vector<double>& edgeWeightsFeatures, const std::vector<std::vector<double>>& childrenListFeatures);
-RcppExport SEXP _tgcc_updateUBC(SEXP dataMatrixSEXP, SEXP initialMatrixSEXP, SEXP lambdaSEXP, SEXP gammaSEXP, SEXP maxIterationsSEXP, SEXP precisionThresholdSEXP, SEXP verticesSamplesSEXP, SEXP typesSamplesSEXP, SEXP parentsSamplesSEXP, SEXP nodeWeightsSamplesSEXP, SEXP edgeWeightsSamplesSEXP, SEXP childrenListSamplesSEXP, SEXP verticesFeaturesSEXP, SEXP typesFeaturesSEXP, SEXP parentsFeaturesSEXP, SEXP nodeWeightsFeaturesSEXP, SEXP edgeWeightsFeaturesSEXP, SEXP childrenListFeaturesSEXP) {
+arma::mat updateUBC(const arma::mat& dataMatrix, const arma::mat& initialMatrix, double lambda, double gamma, int maxIterations, double precisionThreshold, const std::vector<double>& verticesSamples, const std::vector<double>& nodeTypesSamples, const std::vector<double>& parentsSamples, const std::vector<double>& nodeWeightsSamples, const std::vector<double>& edgeWeightsSamples, const std::vector<std::vector<double>>& childrenListSamples, const std::vector<double>& verticesFeatures, const std::vector<double>& nodeTypesFeatures, const std::vector<double>& parentsFeatures, const std::vector<double>& nodeWeightsFeatures, const std::vector<double>& edgeWeightsFeatures, const std::vector<std::vector<double>>& childrenListFeatures);
+RcppExport SEXP _tgcc_updateUBC(SEXP dataMatrixSEXP, SEXP initialMatrixSEXP, SEXP lambdaSEXP, SEXP gammaSEXP, SEXP maxIterationsSEXP, SEXP precisionThresholdSEXP, SEXP verticesSamplesSEXP, SEXP nodeTypesSamplesSEXP, SEXP parentsSamplesSEXP, SEXP nodeWeightsSamplesSEXP, SEXP edgeWeightsSamplesSEXP, SEXP childrenListSamplesSEXP, SEXP verticesFeaturesSEXP, SEXP nodeTypesFeaturesSEXP, SEXP parentsFeaturesSEXP, SEXP nodeWeightsFeaturesSEXP, SEXP edgeWeightsFeaturesSEXP, SEXP childrenListFeaturesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -46,18 +60,18 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type maxIterations(maxIterationsSEXP);
     Rcpp::traits::input_parameter< double >::type precisionThreshold(precisionThresholdSEXP);
     Rcpp::traits::input_parameter< const std::vector<double>& >::type verticesSamples(verticesSamplesSEXP);
-    Rcpp::traits::input_parameter< const std::vector<double>& >::type typesSamples(typesSamplesSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type nodeTypesSamples(nodeTypesSamplesSEXP);
     Rcpp::traits::input_parameter< const std::vector<double>& >::type parentsSamples(parentsSamplesSEXP);
     Rcpp::traits::input_parameter< const std::vector<double>& >::type nodeWeightsSamples(nodeWeightsSamplesSEXP);
     Rcpp::traits::input_parameter< const std::vector<double>& >::type edgeWeightsSamples(edgeWeightsSamplesSEXP);
     Rcpp::traits::input_parameter< const std::vector<std::vector<double>>& >::type childrenListSamples(childrenListSamplesSEXP);
     Rcpp::traits::input_parameter< const std::vector<double>& >::type verticesFeatures(verticesFeaturesSEXP);
-    Rcpp::traits::input_parameter< const std::vector<double>& >::type typesFeatures(typesFeaturesSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type nodeTypesFeatures(nodeTypesFeaturesSEXP);
     Rcpp::traits::input_parameter< const std::vector<double>& >::type parentsFeatures(parentsFeaturesSEXP);
     Rcpp::traits::input_parameter< const std::vector<double>& >::type nodeWeightsFeatures(nodeWeightsFeaturesSEXP);
     Rcpp::traits::input_parameter< const std::vector<double>& >::type edgeWeightsFeatures(edgeWeightsFeaturesSEXP);
     Rcpp::traits::input_parameter< const std::vector<std::vector<double>>& >::type childrenListFeatures(childrenListFeaturesSEXP);
-    rcpp_result_gen = Rcpp::wrap(updateUBC(dataMatrix, initialMatrix, lambda, gamma, maxIterations, precisionThreshold, verticesSamples, typesSamples, parentsSamples, nodeWeightsSamples, edgeWeightsSamples, childrenListSamples, verticesFeatures, typesFeatures, parentsFeatures, nodeWeightsFeatures, edgeWeightsFeatures, childrenListFeatures));
+    rcpp_result_gen = Rcpp::wrap(updateUBC(dataMatrix, initialMatrix, lambda, gamma, maxIterations, precisionThreshold, verticesSamples, nodeTypesSamples, parentsSamples, nodeWeightsSamples, edgeWeightsSamples, childrenListSamples, verticesFeatures, nodeTypesFeatures, parentsFeatures, nodeWeightsFeatures, edgeWeightsFeatures, childrenListFeatures));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -114,6 +128,7 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_tgcc_updateUSC", (DL_FUNC) &_tgcc_updateUSC, 12},
+    {"_tgcc_BiClusteringLoss", (DL_FUNC) &_tgcc_BiClusteringLoss, 4},
     {"_tgcc_updateUBC", (DL_FUNC) &_tgcc_updateUBC, 18},
     {"_tgcc_computeTheta", (DL_FUNC) &_tgcc_computeTheta, 8},
     {"_tgcc_initPrepare", (DL_FUNC) &_tgcc_initPrepare, 4},

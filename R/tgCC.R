@@ -1,17 +1,38 @@
 #' Tree-Guided Convex Clustering
 #'
+#' @description
+#' Perform the tree-guided convex clustering using dynamic programming method.
+#'
 #' @param data matrix with samples as rows and features as columns.
-#' @param lambdaSeq sequence of tuning parameters.
-#' @param bandwidth bandwidth for the Gaussian kernel between rows.
-#' @param useNorm logical, whether to use normalized distance. Default is TRUE.
-#' @param depthThresh depth threshold target. Default is 10.
-#' @param probThresh probability threshold for edge weight. Default is 0.1.
-#' @return A list containing the clustered results and timings.
+#' @param lambdaSeq tuning parameters sequence.
+#' @param bandwidth bandwidth for the Gaussian kernel between rows. Default is heuristic assigned.
+#' @param useNorm logical, whether to use normalized distance. Default is `TRUE`.
+#' @param depthThresh depth threshold target. Default is `10`.
+#' @param probThresh probability threshold for edge weight. Default is `0.1`.
+#' @param isNaive use naive method in searching MST. Default is `TURE`.
+#' @return A list containing the clustered results.
+#'
+#' @examples
+#'
+#' library(tgcc)
+#' dl <- tgcc:::make.mixgaussian(n = 400)
+#' data <- dl$data
+#' label <- dl$label
+#'
+#' lambdaSeq <- seq(1, 2000, length.out = 100)
+#' tgccFit <- tgCC( data = data, lambdaSeq = lambdaSeq)
+#' makeDendrogram(tgccFit, label)
+#'
 #' @export
-tgCC <- function(data, lambdaSeq, bandwidth = NULL, useNorm = TRUE, depthThresh = 10, probThresh = 0.1) {
-
+tgCC <- function(data,
+  lambdaSeq,
+  bandwidth = NULL,
+  useNorm = TRUE,
+  depthThresh = 10,
+  probThresh = 0.1,
+  isNaive = TRUE) {
   # Initialize the parameters
-  init <- initParams(data, bandwidth, useNorm)
+  init <- initParams(data, bandwidth, useNorm, isNaive)
   mstTime <- init$mstTime
   initTime <- init$initTime
   params <- init$params
@@ -27,7 +48,8 @@ tgCC <- function(data, lambdaSeq, bandwidth = NULL, useNorm = TRUE, depthThresh 
 
   # Set a threshold for edge weights of outliers
   outlierIndex <- (partitionSizes < depthThresh)
-  edgeWeights[outlierIndex] <- pmax(edgeWeights[outlierIndex], stats::quantile(edgeWeights[outlierIndex], probThresh))
+  edgeWeights[outlierIndex] <-
+    pmax(edgeWeights[outlierIndex], stats::quantile(edgeWeights[outlierIndex], probThresh))
 
   # Optimization using dynamic programming
   coordinates <- pointerList <- list()
@@ -42,11 +64,31 @@ tgCC <- function(data, lambdaSeq, bandwidth = NULL, useNorm = TRUE, depthThresh 
 
     # Dynamic Programming
     for (featureIdx in seq_len(numFeatures)) {
-      thetaMatrix[, featureIdx] <- computeTheta(updatedData[, featureIdx], lambda, vertices, nodeTypes, parents, nodeWeights, edgeWeights, children)
+      thetaMatrix[, featureIdx] <-
+        computeTheta(
+          updatedData[, featureIdx],
+          lambda,
+          vertices,
+          nodeTypes,
+          parents,
+          nodeWeights,
+          edgeWeights,
+          children
+        )
     }
 
     # Update parameters after clustering step
-    updatedParams <- updatenew(thetaMatrix, updatedData, vertices, nodeTypes, parents, nodeWeights, edgeWeights, children)
+    updatedParams <-
+      updatenew(
+        thetaMatrix,
+        updatedData,
+        vertices,
+        nodeTypes,
+        parents,
+        nodeWeights,
+        edgeWeights,
+        children
+      )
     endTime <- proc.time()
     totalFitTime <- totalFitTime + (endTime - startTime)[3]
 
@@ -63,7 +105,8 @@ tgCC <- function(data, lambdaSeq, bandwidth = NULL, useNorm = TRUE, depthThresh 
     pointerList[[length(pointerList) + 1]] <- updatedParams$pointer
 
     # Break condition
-    if (length(vertices) == 1) break
+    if (length(vertices) == 1)
+      break
   }
 
   # Obtain the matrices corresponding to different lambda values
@@ -71,7 +114,7 @@ tgCC <- function(data, lambdaSeq, bandwidth = NULL, useNorm = TRUE, depthThresh 
   sampleIndices <- seq_len(nrow(data))
   for (i in seq_along(coordinates)) {
     sampleIndices <- pointerList[[i]][sampleIndices] + 1
-    thetaList[[i]] <- coordinates[[i]][sampleIndices, ]
+    thetaList[[i]] <- coordinates[[i]][sampleIndices,]
   }
 
   list(

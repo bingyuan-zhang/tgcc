@@ -1,4 +1,5 @@
 #include <RcppArmadillo.h>
+
 #include "computeTheta.h"
 
 using namespace Rcpp;

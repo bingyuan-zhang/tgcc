@@ -167,7 +167,7 @@ arma::mat updateUSC(
   return updatedMatrix;
 }
 
-
+// [[Rcpp::export]]
 double BiClusteringLoss(const arma::mat& data,
                         const arma::mat& U,
                         double lambda,
@@ -200,13 +200,13 @@ arma::mat updateUBC(
     const arma::mat& dataMatrix, const arma::mat& initialMatrix,
     double lambda, double gamma, int maxIterations, double precisionThreshold,
     const std::vector<double>& verticesSamples,
-    const std::vector<double>& typesSamples,
+    const std::vector<double>& nodeTypesSamples,
     const std::vector<double>& parentsSamples,
     const std::vector<double>& nodeWeightsSamples,
     const std::vector<double>& edgeWeightsSamples,
     const std::vector<std::vector<double>>& childrenListSamples,
     const std::vector<double>& verticesFeatures,
-    const std::vector<double>& typesFeatures,
+    const std::vector<double>& nodeTypesFeatures,
     const std::vector<double>& parentsFeatures,
     const std::vector<double>& nodeWeightsFeatures,
     const std::vector<double>& edgeWeightsFeatures,
@@ -237,7 +237,7 @@ arma::mat updateUBC(
     // Update Y
     for (int j = 0; j < numCols; ++j) {
       tempCol = arma::conv_to<std::vector<double>>::from(updatedMatrix.col(j) + P.col(j));
-      tempColResult = computeTheta(tempCol, lambda, verticesSamples, typesSamples, parentsSamples, nodeWeightsSamples, edgeWeightsSamples, childrenListSamples);
+      tempColResult = computeTheta(tempCol, lambda, verticesSamples, nodeTypesSamples, parentsSamples, nodeWeightsSamples, edgeWeightsSamples, childrenListSamples);
       Y.col(j) = arma::conv_to<arma::colvec>::from(tempColResult);
     }
     // Update P
@@ -246,7 +246,7 @@ arma::mat updateUBC(
     // Update U
     for (int j = 0; j < numRows; ++j) {
       tempRow = arma::conv_to<std::vector<double>>::from(Y.row(j) + Q.row(j));
-      tempRowResult = computeTheta(tempRow, gamma, verticesFeatures, typesFeatures, parentsFeatures, nodeWeightsFeatures, edgeWeightsFeatures, childrenListFeatures);
+      tempRowResult = computeTheta(tempRow, gamma, verticesFeatures, nodeTypesFeatures, parentsFeatures, nodeWeightsFeatures, edgeWeightsFeatures, childrenListFeatures);
       updatedMatrix.row(j) = arma::conv_to<arma::rowvec>::from(tempRowResult);
     }
 

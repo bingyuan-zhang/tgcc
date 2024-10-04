@@ -2,22 +2,26 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 updateUSC <- function(dataMatrix, initialMatrix, lambda, gamma, maxIterations, precisionThreshold, vertices, nodeTypes, parents, nodeWeights, edgeWeights, childrenList) {
-    .Call(`_tgcc_updateUSC`, dataMatrix, initialMatrix, lambda, gamma, maxIterations, precisionThreshold, vertices, nodeTypes, parents, nodeWeights, edgeWeights, childrenList)
+    .Call('_tgcc_updateUSC', PACKAGE = 'tgcc', dataMatrix, initialMatrix, lambda, gamma, maxIterations, precisionThreshold, vertices, nodeTypes, parents, nodeWeights, edgeWeights, childrenList)
 }
 
-updateUBC <- function(dataMatrix, initialMatrix, lambda, gamma, maxIterations, precisionThreshold, verticesSamples, typesSamples, parentsSamples, nodeWeightsSamples, edgeWeightsSamples, childrenListSamples, verticesFeatures, typesFeatures, parentsFeatures, nodeWeightsFeatures, edgeWeightsFeatures, childrenListFeatures) {
-    .Call(`_tgcc_updateUBC`, dataMatrix, initialMatrix, lambda, gamma, maxIterations, precisionThreshold, verticesSamples, typesSamples, parentsSamples, nodeWeightsSamples, edgeWeightsSamples, childrenListSamples, verticesFeatures, typesFeatures, parentsFeatures, nodeWeightsFeatures, edgeWeightsFeatures, childrenListFeatures)
+BiClusteringLoss <- function(data, U, lambda, gamma) {
+    .Call('_tgcc_BiClusteringLoss', PACKAGE = 'tgcc', data, U, lambda, gamma)
+}
+
+updateUBC <- function(dataMatrix, initialMatrix, lambda, gamma, maxIterations, precisionThreshold, verticesSamples, nodeTypesSamples, parentsSamples, nodeWeightsSamples, edgeWeightsSamples, childrenListSamples, verticesFeatures, nodeTypesFeatures, parentsFeatures, nodeWeightsFeatures, edgeWeightsFeatures, childrenListFeatures) {
+    .Call('_tgcc_updateUBC', PACKAGE = 'tgcc', dataMatrix, initialMatrix, lambda, gamma, maxIterations, precisionThreshold, verticesSamples, nodeTypesSamples, parentsSamples, nodeWeightsSamples, edgeWeightsSamples, childrenListSamples, verticesFeatures, nodeTypesFeatures, parentsFeatures, nodeWeightsFeatures, edgeWeightsFeatures, childrenListFeatures)
 }
 
 computeTheta <- function(nodeValues, lambda, vertices, nodeTypes, parents, nodeWeights, edgeWeights, childrenList) {
-    .Call(`_tgcc_computeTheta`, nodeValues, lambda, vertices, nodeTypes, parents, nodeWeights, edgeWeights, childrenList)
+    .Call('_tgcc_computeTheta', PACKAGE = 'tgcc', nodeValues, lambda, vertices, nodeTypes, parents, nodeWeights, edgeWeights, childrenList)
 }
 
 initPrepare <- function(from, to, dist, gamma) {
-    .Call(`_tgcc_initPrepare`, from, to, dist, gamma)
+    .Call('_tgcc_initPrepare', PACKAGE = 'tgcc', from, to, dist, gamma)
 }
 
 updatenew <- function(Theta, input, vertices, types, parents, nodeWeights, edgeWeights, childrenList) {
-    .Call(`_tgcc_updatenew`, Theta, input, vertices, types, parents, nodeWeights, edgeWeights, childrenList)
+    .Call('_tgcc_updatenew', PACKAGE = 'tgcc', Theta, input, vertices, types, parents, nodeWeights, edgeWeights, childrenList)
 }
 
