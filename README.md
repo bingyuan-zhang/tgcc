@@ -9,7 +9,7 @@ R package `tgcc` implements the tree-guided convex clustering (TGCC) and its ext
     -   [Example 1: TGCC]
     -   [Example 2: Extensions of TGCC]
 
-### Installation {#installation}
+## Installation {#installation}
 
 Run the following code in Rstudio to install `tgcc` from GitHub.
 
@@ -179,4 +179,4 @@ ComplexHeatmap::pheatmap(Theta[[4]], cluster_rows = F, cluster_cols = F, legend 
 ComplexHeatmap::pheatmap(Theta[[10]], cluster_rows = F, cluster_cols = F, legend = F)
 ```
 
-![](./inst/example_png/bitgcc.png){style="display: block; margin: auto;" width="100%"}
+<img src="./inst/example_png/bitgcc.png" width="100%" style="display: block; margin: auto;"/>
