@@ -12,6 +12,9 @@
 #' @param isNaive use naive method in searching MST. Default is `TURE`.
 #' @return A list containing the clustered results.
 #'
+#' @useDynLib tgcc, .registration=TRUE
+#' @importFrom stats quantile
+#'
 #' @examples
 #'
 #' library(tgcc)

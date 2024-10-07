@@ -12,30 +12,28 @@ editor: visual
 
 ```{r}
 # | echo: false
-library(dplyr)
 library(tgcc)
-library(ggplot2)
 ```
 
 ## Prepare testing data set
 
 ```{r}
-#| cache: false
-#| message: false
-
-set.seed(1)
+set.seed(2024)
 dl <- tgcc:::make.mixgaussian(n = 400)
 data <- dl$data
 label <- dl$label
 plot(data, col=label)
 
-lambdaSeq <- seq(1, 2000, length.out = 100)
+lambdaSeq <- seq(1, 4000, length.out = 100)
+bandwidth <- 1
+tgccFit <-
+  tgcc::tgCC(data = data,
+    lambdaSeq = lambdaSeq,
+    bandwidth = bandwidth)
+tgcc::makeDendrogram(tgccFit, label)
 
-tgccFit <- tgcc::tgCC(data = data, lambdaSeq = lambdaSeq)
+predLabel <- tgcc::clusterLabel(tgccFit, numClusters=3)
 
-tgcc:::makeDendrogram(tgccFit, label)
-
-predLabel <- tgcc:::clusterLabel(tgccFit, numClusters=3)
 1-mclust::classError(label, predLabel)$errorRate
 ```
 

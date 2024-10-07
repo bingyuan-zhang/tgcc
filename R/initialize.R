@@ -1,3 +1,5 @@
+#' @importFrom mlpack emst
+#' @importFrom stats median
 initParams <- function(data,
   bandwidth = NULL,
   normalize = TRUE,

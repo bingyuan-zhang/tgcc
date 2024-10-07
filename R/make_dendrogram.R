@@ -100,6 +100,7 @@ parDendrogram <- function(tgccFit) {
 }
 
 # Generate color hues for dendrogram
+#' @importFrom grDevices hcl
 ggColorHue <- function(numColors, lightness = 65) {
   hues <- seq(15, 375, length=numColors + 1)
   grDevices::hcl(h=hues, l=lightness, c=100)[1:numColors]

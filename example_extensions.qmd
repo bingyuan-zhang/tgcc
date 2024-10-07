@@ -14,13 +14,12 @@ library(ComplexHeatmap)
 ```
 
 ```{r}
-# generate SF model ground truth
+# generate FS model ground truth
 set.seed(2024)
 FsModelDat0 <- tgcc:::make.fourspherical(300, isGroundTruth = TRUE)
 data0 <- FsModelDat0$data[order(FsModelDat0$label), ]
-pheatmap(data0, cluster_rows = F, cluster_cols = F, legend = F)
+ComplexHeatmap::pheatmap(data0, cluster_rows = F, cluster_cols = F, legend = F)
 ```
-
 
 ```{r}
 # generate SF model
@@ -51,12 +50,10 @@ predLabel <- tgcc:::clusterLabel(tgccFit, numClusters=4)
 
 # estimated centroid matrix theta
 Theta <- tgccFit$theta
-pheatmap(data, cluster_rows = F, cluster_cols = F, legend = F)
-pheatmap(Theta[[4]], cluster_rows = F, cluster_cols = F, legend = F)
-pheatmap(Theta[[5]], cluster_rows = F, cluster_cols = F, legend = F)
-pheatmap(Theta[[10]], cluster_rows = F, cluster_cols = F, legend = F)
-
-
+ComplexHeatmap::pheatmap(data, cluster_rows = F, cluster_cols = F, legend = F)
+ComplexHeatmap::pheatmap(Theta[[4]], cluster_rows = F, cluster_cols = F, legend = F)
+ComplexHeatmap::pheatmap(Theta[[5]], cluster_rows = F, cluster_cols = F, legend = F)
+ComplexHeatmap::pheatmap(Theta[[10]], cluster_rows = F, cluster_cols = F, legend = F)
 ```
 
 ```{r}
@@ -64,7 +61,7 @@ pheatmap(Theta[[10]], cluster_rows = F, cluster_cols = F, legend = F)
 set.seed(2024)
 FsModelDat0 <- tgcc:::make.checkboard(300, isGroundTruth = TRUE)
 data0 <- FsModelDat0$data[order(FsModelDat0$label), ]
-pheatmap(data0, cluster_rows = F, cluster_cols = F, legend = F)
+ComplexHeatmap::pheatmap(data0, cluster_rows = F, cluster_cols = F, legend = F)
 ```
 
 ```{r}
@@ -98,9 +95,9 @@ predLabel <- tgcc:::clusterLabel(tgccFit, numClusters=4)
 
 # estimated centroid matrix theta
 Theta <- tgccFit$theta
-pheatmap(data, cluster_rows = F, cluster_cols = F, legend = F)
-pheatmap(Theta[[2]], cluster_rows = F, cluster_cols = F, legend = F)
-pheatmap(Theta[[4]], cluster_rows = F, cluster_cols = F, legend = F)
-pheatmap(Theta[[10]], cluster_rows = F, cluster_cols = F, legend = F)
+ComplexHeatmap::pheatmap(data, cluster_rows = F, cluster_cols = F, legend = F)
+ComplexHeatmap::pheatmap(Theta[[2]], cluster_rows = F, cluster_cols = F, legend = F)
+ComplexHeatmap::pheatmap(Theta[[4]], cluster_rows = F, cluster_cols = F, legend = F)
+ComplexHeatmap::pheatmap(Theta[[10]], cluster_rows = F, cluster_cols = F, legend = F)
 lambdaSeq[c(2,4,10)]
 ```

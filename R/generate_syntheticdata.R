@@ -167,6 +167,7 @@ make.checkboard <- function (n, isGroundTruth = FALSE) {
   return(list(data = X, label = row_cluster_id))
 }
 
+#' @importFrom mvtnorm rmvnorm
 make.fourspherical <- function (n, isGroundTruth = FALSE){
   mu = 2
   # generate informative features from 4 groups
