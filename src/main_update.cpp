@@ -3,7 +3,6 @@ using namespace Rcpp;
 
 // [[Rcpp::depends(RcppArmadillo)]]
 
-// Function to update the tree structure and weights
 void update (
     arma::mat Theta,
     arma::mat& input,

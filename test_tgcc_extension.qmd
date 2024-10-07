@@ -1,9 +1,0 @@
----
-title: "test tgCC extension"
-author: "zhang"
-format: html
-execute:
-  echo: false
-  output: false
-editor: visual
----

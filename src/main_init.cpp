@@ -3,8 +3,7 @@ using namespace Rcpp;
 
 // [[Rcpp::depends(RcppArmadillo)]]
 
-// Function to build adjacency and distance lists for the graph
-void find_connected_edges(
+void findConnectedEdges(
     const std::vector<double>& sourceNodes,
     const std::vector<double>& targetNodes,
     const std::vector<double>& distances,
@@ -25,8 +24,7 @@ void find_connected_edges(
   }
 }
 
-// Function to initialize graph parameters
-void initialize(
+void initializeParams(
     const std::vector<std::vector<double>>& adjList,
     const std::vector<std::vector<double>>& distanceList,
     std::vector<std::vector<double>>& childrenList,
@@ -119,7 +117,7 @@ void initialize(
 }
 
 //[[Rcpp::export]]
-Rcpp::List init_prepare (
+Rcpp::List initPrepare (
     const std::vector<double>& from,
     const std::vector<double>& to,
     const std::vector<double>& dist,
@@ -132,7 +130,7 @@ Rcpp::List init_prepare (
   std::vector<std::vector<double>> childrenList(n);
 
   // Fill the adjacency list and distance list with edges
-  find_connected_edges(from, to, dist, adjList, distanceList);
+  findConnectedEdges(from, to, dist, adjList, distanceList);
 
   std::vector<double> vertices(n);
   std::vector<double> depths(n);
@@ -143,7 +141,7 @@ Rcpp::List init_prepare (
   std::vector<double> partitions(n, 1.0);
 
   // Initialize the node properties using BFS
-  initialize(adjList, distanceList, childrenList, vertices,
+  initializeParams(adjList, distanceList, childrenList, vertices,
     depths, types, edgeWeights, parents, partitions, gamma);
 
   Rcpp::List res = List::create(
