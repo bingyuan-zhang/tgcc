@@ -9,7 +9,7 @@ R package `tgcc` implements the tree-guided convex clustering (TGCC) and its ext
     -   [Example 1: TGCC]
     -   [Example 2: Extensions of TGCC]
 
-## Installation {#installation}
+## Installation
 
 Run the following code in Rstudio to install `tgcc` from GitHub.
 
@@ -18,7 +18,7 @@ library(devtools)
 install_github("bingyuan-zhang/tgcc")
 ```
 
-## Examples {#examples}
+## Examples
 
 We apply TGCC to the following examples.
 
