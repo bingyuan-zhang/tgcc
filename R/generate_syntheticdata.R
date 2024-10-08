@@ -190,3 +190,32 @@ make.fourspherical <- function (n, isGroundTruth = FALSE){
   }
   list(data=X, label=candidates)
 }
+
+#' @importFrom GPArotation Random.Start
+#' @importFrom mvtnorm rmvnorm
+generate_multidim <- function(n, p){
+  # DO NOT CHANGE #
+  ##################################
+  mu <- matrix(0,3,2)
+  a <- 4
+  mu[1,] <- c(a/sqrt(3),0)
+  mu[2,] <- c(-a/(2*sqrt(3)),a/2)
+  mu[3,] <- c(-a/(2*sqrt(3)),-a/2)
+  m <- 50
+  mu_pert <- 0.5/2
+  ##################################
+  cmat <- mu%*%GPArotation::Random.Start( p )[1:2,1:p] + rnorm(3*p, sd = mu_pert) #Cluster centers
+  tmp_cov_arr <- array(0, dim = c(3,p,p))
+  tmp_label <- (1:3)%*%rmultinom(n = n, size = 1, prob = rep(1/3,3))
+  tmp_data <- matrix(0, nrow = n, ncol = p)
+  for(k in 1:3){
+    tmp_data4cor <- matrix(rnorm(m*p), nrow = m, ncol = p)
+    tmp_cor <- cor(tmp_data4cor)
+    tmp_var <- runif(p, min = 0.5, max = 1.4)
+    tmp_cov <- tmp_cor*(tmp_var%*%t(tmp_var))
+    tmp_cov_arr[k,,] <- tmp_cov
+    tmp_index <- which(tmp_label == k)
+    tmp_data[tmp_index,] <- mvtnorm::rmvnorm(n = length(tmp_index), mean = cmat[k,], sigma = tmp_cov)
+  }
+  return(list(data = tmp_data, label = as.vector(tmp_label)))
+}
