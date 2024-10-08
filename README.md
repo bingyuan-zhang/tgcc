@@ -83,7 +83,7 @@ For the sparse clustering setting, we generate the Four Spherical example.
 
 ``` r
 set.seed(2024)
-FsModelDat0 <- tgcc::make.fourspherical(300, isGroundTruth = TRUE)
+FsModelDat0 <- tgcc:::make.fourspherical(300, isGroundTruth = TRUE)
 data0 <- FsModelDat0$data[order(FsModelDat0$label), ]
 ComplexHeatmap::pheatmap(data0, cluster_rows = F, cluster_cols = F, legend = F)
 ```
