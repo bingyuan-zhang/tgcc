@@ -22,10 +22,11 @@ install_github("bingyuan-zhang/tgcc")
 
 We apply TGCC to the following examples.
 
-At the beginning, we load the `tgcc` package.
+At the beginning, we load the `tgcc` and the `ComplexHeatmap` R package for visualization.
 
 ``` r
 library(tgcc)
+library(ComplexHeatmap)
 ```
 
 ### Example 1: TGCC
@@ -85,7 +86,7 @@ For the sparse clustering setting, we generate the Four Spherical example.
 set.seed(2024)
 FsModelDat0 <- tgcc:::make.fourspherical(300, isGroundTruth = TRUE)
 data0 <- FsModelDat0$data[order(FsModelDat0$label), ]
-ComplexHeatmap::pheatmap(data0, cluster_rows = F, cluster_cols = F, legend = F)
+ComplexHeatmap::pheatmap(data0, cluster_rows = FALSE, cluster_cols = FALSE, legend = FALSE)
 ```
 
 The estimated centroid matrix is visualized as a heatmap using `pheatmap` in `ComplexHeatmap` R package.
@@ -93,7 +94,7 @@ The estimated centroid matrix is visualized as a heatmap using `pheatmap` in `Co
 ``` r
 # generate the data matrix following the FS model
 set.seed(2024)
-FsModelDat <- tgcc::make.fourspherical(300)
+FsModelDat <- tgcc:::make.fourspherical(300)
 data <- FsModelDat$data
 label <- FsModelDat$label
 data <- data[order(label), ]
@@ -119,10 +120,10 @@ predLabel <- tgcc::clusterLabel(tgccFit, numClusters=4)
 
 # estimated centroid matrix
 Theta <- tgccFit$theta
-ComplexHeatmap::pheatmap(data, cluster_rows = F, cluster_cols = F, legend = F)
-ComplexHeatmap::pheatmap(Theta[[4]], cluster_rows = F, cluster_cols = F, legend = F)
-ComplexHeatmap::pheatmap(Theta[[5]], cluster_rows = F, cluster_cols = F, legend = F)
-ComplexHeatmap::pheatmap(Theta[[10]], cluster_rows = F, cluster_cols = F, legend = F)
+ComplexHeatmap::pheatmap(data, cluster_rows = FALSE, cluster_cols = FALSE, legend = FALSE)
+ComplexHeatmap::pheatmap(Theta[[4]], cluster_rows = FALSE, cluster_cols = FALSE, legend = FALSE)
+ComplexHeatmap::pheatmap(Theta[[5]], cluster_rows = FALSE, cluster_cols = FALSE, legend = FALSE)
+ComplexHeatmap::pheatmap(Theta[[10]], cluster_rows = FALSE, cluster_cols = FALSE, legend = FALSE)
 ```
 
 <img src="./inst/example_png/sptgcc.png" width="100%" style="display: block; margin: auto;"/>
@@ -137,7 +138,7 @@ For the biclustering setting, we generate the Check Board example.
 set.seed(2024)
 FsModelDat0 <- tgcc:::make.checkboard(300, isGroundTruth = TRUE)
 data0 <- FsModelDat0$data[order(FsModelDat0$label), ]
-pheatmap(data0, cluster_rows = F, cluster_cols = F, legend = F)
+pheatmap(data0, cluster_rows = FALSE, cluster_cols = FALSE, legend = FALSE)
 ```
 
 The estimated centroid matrix is visualized as a heatmap using `pheatmap` in `ComplexHeatmap` R package.
@@ -173,10 +174,10 @@ predLabel <- tgcc:::clusterLabel(tgccFit, numClusters=4)
 
 # estimated centroid matrix theta
 Theta <- tgccFit$theta
-ComplexHeatmap::pheatmap(data, cluster_rows = F, cluster_cols = F, legend = F)
-ComplexHeatmap::pheatmap(Theta[[2]], cluster_rows = F, cluster_cols = F, legend = F)
-ComplexHeatmap::pheatmap(Theta[[4]], cluster_rows = F, cluster_cols = F, legend = F)
-ComplexHeatmap::pheatmap(Theta[[10]], cluster_rows = F, cluster_cols = F, legend = F)
+ComplexHeatmap::pheatmap(data, cluster_rows = FALSE, cluster_cols = FALSE, legend = FALSE)
+ComplexHeatmap::pheatmap(Theta[[2]], cluster_rows = FALSE, cluster_cols = FALSE, legend = FALSE)
+ComplexHeatmap::pheatmap(Theta[[4]], cluster_rows = FALSE, cluster_cols = FALSE, legend = FALSE)
+ComplexHeatmap::pheatmap(Theta[[10]], cluster_rows = FALSE, cluster_cols = FALSE, legend = FALSE)
 ```
 
 <img src="./inst/example_png/bitgcc.png" width="100%" style="display: block; margin: auto;"/>
