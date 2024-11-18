@@ -1,9 +1,10 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^LICENSE\.md$
-^test_package_functions\.qmd$
 ^inst$
-^tests$
+^oldSrc$
 ^README\.md$
+
+^simulation$
 
 

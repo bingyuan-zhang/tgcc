@@ -1,159 +1,174 @@
 #include <RcppArmadillo.h>
+#include <vector>
+
 using namespace Rcpp;
 
 // [[Rcpp::depends(RcppArmadillo)]]
 
-void findConnectedEdges(
+struct edgeSet {
+  std::vector<std::vector<double>> adjList;
+  std::vector<std::vector<double>> distanceList;
+
+  edgeSet(int numNodes) {
+    adjList.resize(numNodes);
+    distanceList.resize(numNodes);
+  }
+};
+
+struct treeVar {
+  std::vector<double> vertices;
+  std::vector<double> depths;
+  std::vector<double> types;
+  std::vector<double> edgeWeights;
+  std::vector<double> nodeWeights;
+  std::vector<double> parents;
+  std::vector<double> partitions;
+  std::vector<std::vector<double>> childrenList;
+
+  treeVar(int numNodes) {
+    vertices.resize(numNodes, 0.0);
+    depths.resize(numNodes, 0.0);
+    types.resize(numNodes, 0.0);
+    edgeWeights.resize(numNodes, 0.0);
+    nodeWeights.resize(numNodes, 1.0);
+    parents.resize(numNodes, 0.0);
+    partitions.resize(numNodes, 1.0);
+    childrenList.resize(numNodes, std::vector<double>());
+  }
+};
+
+edgeSet findConnectedEdges(
     const std::vector<double>& sourceNodes,
     const std::vector<double>& targetNodes,
-    const std::vector<double>& distances,
-    std::vector<std::vector<double>>& adjList,
-    std::vector<std::vector<double>>& distanceList) {
+    const std::vector<double>& distances) {
 
   int edgeCount = sourceNodes.size();
+  int nodeCount = edgeCount + 1; // For a tree，number of node = number of edge + 1
+
+  edgeSet edges(nodeCount);
 
   for (int i = 0; i < edgeCount; i++) {
-    int source = sourceNodes[i];
-    int target = targetNodes[i];
+    int source = static_cast<int>(sourceNodes[i]);
+    int target = static_cast<int>(targetNodes[i]);
     double distance = distances[i];
 
-    adjList[source].push_back(target);
-    adjList[target].push_back(source);
-    distanceList[source].push_back(distance);
-    distanceList[target].push_back(distance);
+    edges.adjList[source].push_back(target);
+    edges.adjList[target].push_back(source);
+    edges.distanceList[source].push_back(distance);
+    edges.distanceList[target].push_back(distance);
   }
+
+  return edges;
 }
 
-void initializeParams(
-    const std::vector<std::vector<double>>& adjList,
-    const std::vector<std::vector<double>>& distanceList,
-    std::vector<std::vector<double>>& childrenList,
-    std::vector<double>& vertices,
-    std::vector<double>& depths,
-    std::vector<double>& types,
-    std::vector<double>& edgeWeights,
-    std::vector<double>& parents,
-    std::vector<double>& partitions,
+treeVar initializeParams(
+    const edgeSet& edges,
     double gamma) {
 
-  int nodeCount = adjList.size();
+  int nodeCount = edges.adjList.size();
+  treeVar tree(nodeCount);
+
   int seenCount = 1;
   int currentDepth = 0;
-  std::vector<double> currentDepthVertices = adjList[0];
+  std::vector<double> currentDepthVertices = edges.adjList[0];
   std::vector<double> nextDepthVertices;
 
   // Initialize root parameters
-  vertices[0] = 0;
-  depths[0] = 0;
-  parents[0] = 0;
-  edgeWeights[0] = 0;
-  childrenList[0] = adjList[0];
-  types[0] = (adjList[0].size() == 1) ? 3 : 4;
+  tree.childrenList[0] = edges.adjList[0];
+  tree.types[0] = (edges.adjList[0].size() == 1) ? 3 : 4;
 
   // Initialize root's children
-  for (int i = 0; i < adjList[0].size(); ++i) {
-    parents[adjList[0][i]] = 0;
-    edgeWeights[adjList[0][i]] = std::exp(-std::pow(distanceList[0][i], 2) / gamma);
+  for (size_t i = 0; i < edges.adjList[0].size(); ++i) {
+    int child = edges.adjList[0][i];
+    tree.parents[child] = 0;
+    tree.edgeWeights[child] = std::exp(-std::pow(edges.distanceList[0][i], 2) / gamma);
   }
 
   // BFS to initialize other nodes
   while (seenCount < nodeCount) {
     currentDepth += 1;
-    for (int i = 0; i < currentDepthVertices.size(); ++i) {
+    for (size_t i = 0; i < currentDepthVertices.size(); ++i) {
       int vertex = currentDepthVertices[i];
-      vertices[seenCount] = vertex;
-      depths[seenCount] = currentDepth;
-      for (int j = 0; j < adjList[vertex].size(); ++j) {
-        int neighbor = adjList[vertex][j];
-        if (neighbor != parents[vertex]) {
+      tree.vertices[seenCount] = vertex;
+      tree.depths[seenCount] = currentDepth;
+
+      for (size_t j = 0; j < edges.adjList[vertex].size(); ++j) {
+        int neighbor = edges.adjList[vertex][j];
+        if (neighbor != tree.parents[vertex]) {
           // Find children of the vertex
-          childrenList[vertex].push_back(neighbor);
+          tree.childrenList[vertex].push_back(neighbor);
           // Set the parent of the neighbor
-          parents[neighbor] = vertex;
+          tree.parents[neighbor] = vertex;
           // Set edge weights between vertex and its children
-          edgeWeights[neighbor] = std::exp(-std::pow(distanceList[vertex][j], 2) / gamma);
+          tree.edgeWeights[neighbor] = std::exp(-std::pow(edges.distanceList[vertex][j], 2) / gamma);
         }
       }
+
       // Update types based on the number of children
-      if (childrenList[vertex].empty()) {
-        types[vertex] = 0; // Leaf node
-      } else if (childrenList[vertex].size() == 1) {
-        types[vertex] = 1; // Node with one child
+      if (tree.childrenList[vertex].empty()) {
+        tree.types[vertex] = 0; // Leaf node
+      } else if (tree.childrenList[vertex].size() == 1) {
+        tree.types[vertex] = 1; // Node with one child
       } else {
-        types[vertex] = 2; // Node with more than one child
+        tree.types[vertex] = 2; // Node with multiple children
       }
+
       seenCount++;
-      nextDepthVertices.insert(nextDepthVertices.end(), childrenList[vertex].begin(), childrenList[vertex].end());
+      nextDepthVertices.insert(nextDepthVertices.end(), tree.childrenList[vertex].begin(), tree.childrenList[vertex].end());
     }
     currentDepthVertices = std::move(nextDepthVertices);
     nextDepthVertices.clear();
   }
 
   // Reverse the vertices and depths
-  std::reverse(vertices.begin(), vertices.end());
-  std::reverse(depths.begin(), depths.end());
+  std::reverse(tree.vertices.begin(), tree.vertices.end());
+  std::reverse(tree.depths.begin(), tree.depths.end());
 
   // Update partitions based on children
   for (int i = 0; i < nodeCount; ++i) {
-    int vertex = vertices[i];
-    if (types[vertex] != 0) {
-      if (types[vertex] == 2) {
-        for (const auto& child : childrenList[vertex]) {
-          partitions[vertex] += partitions[child];
+    int vertex = tree.vertices[i];
+    if (tree.types[vertex] != 0) {
+      if (tree.types[vertex] == 2) {
+        for (const auto& child : tree.childrenList[vertex]) {
+          tree.partitions[vertex] += tree.partitions[child];
         }
-      } else if (types[vertex] != 3) { // Type 1 or 4
-        partitions[vertex] += partitions[childrenList[vertex][0]];
+      } else if (tree.types[vertex] != 3) {
+          tree.partitions[vertex] += tree.partitions[tree.childrenList[vertex][0]];
       }
     }
   }
 
   // Adjust partitions
   for (int i = 0; i < nodeCount; ++i) {
-    int maxPartition = nodeCount - partitions[i];
-    if (partitions[i] > maxPartition) {
-      partitions[i] = maxPartition;
+    int maxPartition = nodeCount - tree.partitions[i];
+    if (tree.partitions[i] > maxPartition) {
+      tree.partitions[i] = maxPartition;
     }
   }
+
+  return tree;
 }
 
-//[[Rcpp::export]]
-Rcpp::List initPrepare (
+// [[Rcpp::export]]
+List initPrepare (
     const std::vector<double>& from,
     const std::vector<double>& to,
     const std::vector<double>& dist,
     double gamma) {
 
-  int n = from.size() + 1;
+  edgeSet edges = findConnectedEdges(from, to, dist);
+  treeVar tree = initializeParams(edges, gamma);
 
-  std::vector<std::vector<double>> adjList(n);
-  std::vector<std::vector<double>> distanceList(n);
-  std::vector<std::vector<double>> childrenList(n);
-
-  // Fill the adjacency list and distance list with edges
-  findConnectedEdges(from, to, dist, adjList, distanceList);
-
-  std::vector<double> vertices(n);
-  std::vector<double> depths(n);
-  std::vector<double> types(n);
-  std::vector<double> edgeWeights(n);
-  std::vector<double> nodeWeights(n, 1.0);
-  std::vector<double> parents(n);
-  std::vector<double> partitions(n, 1.0);
-
-  // Initialize the node properties using BFS
-  initializeParams(adjList, distanceList, childrenList, vertices,
-    depths, types, edgeWeights, parents, partitions, gamma);
-
-  Rcpp::List res = List::create(
-    Named("Vertices")   = wrap(vertices),
-    Named("Depths")     = wrap(depths),
-    Named("Types")      = wrap(types),
-    Named("EdgeWeights")= wrap(edgeWeights),
-    Named("NodeWeights")= wrap(nodeWeights),
-    Named("Parents")    = wrap(parents),
-    Named("Partitions") = wrap(partitions),
-    Named("Children")   = wrap(childrenList)
+  List res = List::create(
+    Named("Vertices")    = wrap(tree.vertices),
+    Named("Depths")      = wrap(tree.depths),
+    Named("Types")       = wrap(tree.types),
+    Named("EdgeWeights") = wrap(tree.edgeWeights),
+    Named("NodeWeights") = wrap(tree.nodeWeights),
+    Named("Parents")     = wrap(tree.parents),
+    Named("Partitions")  = wrap(tree.partitions),
+    Named("Children")    = wrap(tree.childrenList)
   );
 
-  return (res);
+  return res;
 }

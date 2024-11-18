@@ -76,13 +76,13 @@ BEGIN_RCPP
 END_RCPP
 }
 // computeTheta
-std::vector<double> computeTheta(const std::vector<double>& nodeValues, double lambda, const std::vector<double>& vertices, const std::vector<double>& nodeTypes, const std::vector<double>& parents, const std::vector<double>& nodeWeights, const std::vector<double>& edgeWeights, const std::vector<std::vector<double>>& childrenList);
+std::vector<double> computeTheta(const std::vector<double>& nodeValues, const double lambda, const std::vector<double>& vertices, const std::vector<double>& nodeTypes, const std::vector<double>& parents, const std::vector<double>& nodeWeights, const std::vector<double>& edgeWeights, const std::vector<std::vector<double>>& childrenList);
 RcppExport SEXP _tgcc_computeTheta(SEXP nodeValuesSEXP, SEXP lambdaSEXP, SEXP verticesSEXP, SEXP nodeTypesSEXP, SEXP parentsSEXP, SEXP nodeWeightsSEXP, SEXP edgeWeightsSEXP, SEXP childrenListSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const std::vector<double>& >::type nodeValues(nodeValuesSEXP);
-    Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< const double >::type lambda(lambdaSEXP);
     Rcpp::traits::input_parameter< const std::vector<double>& >::type vertices(verticesSEXP);
     Rcpp::traits::input_parameter< const std::vector<double>& >::type nodeTypes(nodeTypesSEXP);
     Rcpp::traits::input_parameter< const std::vector<double>& >::type parents(parentsSEXP);
@@ -94,7 +94,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // initPrepare
-Rcpp::List initPrepare(const std::vector<double>& from, const std::vector<double>& to, const std::vector<double>& dist, double gamma);
+List initPrepare(const std::vector<double>& from, const std::vector<double>& to, const std::vector<double>& dist, double gamma);
 RcppExport SEXP _tgcc_initPrepare(SEXP fromSEXP, SEXP toSEXP, SEXP distSEXP, SEXP gammaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -108,19 +108,19 @@ BEGIN_RCPP
 END_RCPP
 }
 // updatenew
-Rcpp::List updatenew(arma::mat Theta, arma::mat& input, std::vector<double>& vertices, std::vector<double>& types, std::vector<double>& parents, std::vector<double>& nodeWeights, std::vector<double>& edgeWeights, std::vector<std::vector<double>>& childrenList);
+Rcpp::List updatenew(const arma::mat& Theta, const arma::mat& input, const std::vector<double>& vertices, const std::vector<double>& types, const std::vector<double>& parents, const std::vector<double>& nodeWeights, const std::vector<double>& edgeWeights, const std::vector<std::vector<double>>& childrenList);
 RcppExport SEXP _tgcc_updatenew(SEXP ThetaSEXP, SEXP inputSEXP, SEXP verticesSEXP, SEXP typesSEXP, SEXP parentsSEXP, SEXP nodeWeightsSEXP, SEXP edgeWeightsSEXP, SEXP childrenListSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type Theta(ThetaSEXP);
-    Rcpp::traits::input_parameter< arma::mat& >::type input(inputSEXP);
-    Rcpp::traits::input_parameter< std::vector<double>& >::type vertices(verticesSEXP);
-    Rcpp::traits::input_parameter< std::vector<double>& >::type types(typesSEXP);
-    Rcpp::traits::input_parameter< std::vector<double>& >::type parents(parentsSEXP);
-    Rcpp::traits::input_parameter< std::vector<double>& >::type nodeWeights(nodeWeightsSEXP);
-    Rcpp::traits::input_parameter< std::vector<double>& >::type edgeWeights(edgeWeightsSEXP);
-    Rcpp::traits::input_parameter< std::vector<std::vector<double>>& >::type childrenList(childrenListSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type Theta(ThetaSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type input(inputSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type vertices(verticesSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type types(typesSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type parents(parentsSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type nodeWeights(nodeWeightsSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type edgeWeights(edgeWeightsSEXP);
+    Rcpp::traits::input_parameter< const std::vector<std::vector<double>>& >::type childrenList(childrenListSEXP);
     rcpp_result_gen = Rcpp::wrap(updatenew(Theta, input, vertices, types, parents, nodeWeights, edgeWeights, childrenList));
     return rcpp_result_gen;
 END_RCPP

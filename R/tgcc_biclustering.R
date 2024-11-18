@@ -14,7 +14,7 @@
 #' @param probThresh probability threshold for edge weight. Default is `0.1`.
 #' @param maxIter maximum iteration of the Dykstra algorithm.
 #' @param threshold stop condition of the Dykstra algorithm.
-#' @param isNaive use naive method in searching MST. Default is `TURE`.
+#' @param isNaive use naive method in searching MST. Default is `FALSE`.
 #' @export
 #'
 #'
@@ -31,7 +31,7 @@ biTGCC <- function (
   probThresh = 0.1,
   maxIter = 500,
   threshold = 1e-5,
-  isNaive = TRUE) {
+  isNaive = FALSE) {
 
   # initialize parameters
   init <- initParamsBicc(data, bandwidth_s, bandwidth_f, useNorm, isNaive)

@@ -2,6 +2,7 @@
 #define tgcc_H
 
 #include <vector>
+#include <tuple>
 
 // Function computeTheta declaration
 std::vector<double> computeTheta(

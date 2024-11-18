@@ -12,7 +12,7 @@
 #' @param probThresh probability threshold for edge weight. Default is `0.1`.
 #' @param maxIter maximum iteration for the Dykstra algorithm.
 #' @param threshold stop condition for the Dykstra algorithm.
-#' @param isNaive use naive method in searching MST. Default is `TURE`.
+#' @param isNaive use naive method in searching MST. Default is `FALSE`.
 #' @return A list containing the clustered results.
 #'
 #' @export
@@ -26,7 +26,7 @@ spTGCC <- function(
   probThresh = 0.1,
   maxIter = 500,
   threshold = 1e-5,
-  isNaive = TRUE) {
+  isNaive = FALSE) {
 
   # Initialize the parameters
   init <- initParams(data, bandwidth, useNorm, isNaive)
@@ -51,6 +51,7 @@ spTGCC <- function(
   leftFeature <- 1:ncol(data)
 
   for(k in seq_along(lambdaSeq)) {
+
     numSamples <- nrow(updatedData)
     numFeatures <- ncol(updatedData)
     lambda <- lambdaSeq[k]
@@ -90,6 +91,11 @@ spTGCC <- function(
     updatedData <- updatedData[ ,selectedFeature]
     updatedDataBefore <- updatedDataBefore[,selectedFeature]
 
+    if(!is.matrix(updatedData)) {
+      updatedData <- matrix(updatedData, length(updatedData), ncol=1)
+      updatedDataBefore <- matrix(updatedDataBefore, length(updatedDataBefore), ncol=1)
+    }
+
     # Clustering step
     updatedParams <- updatenew(updatedData, updatedDataBefore,
                         vertices, nodeTypes, parents,
@@ -103,10 +109,10 @@ spTGCC <- function(
     children  <- updatedParams$newChildrenList
     parents  <- updatedParams$newParents
 
-    curLeftFeature <- leftFeature[selectedFeature]
+    leftFeature <- leftFeature[selectedFeature]
     coordinates[[length(coordinates) + 1]] <- updatedData
     pointerList[[length(pointerList) + 1]] <- updatedParams$pointer
-    leftFeatureList[[length(leftFeatureList) + 1]] <- curLeftFeature
+    leftFeatureList[[length(leftFeatureList) + 1]] <- leftFeature
 
     # ---- break condition ----
     if (length(vertices) == 1) break
@@ -129,7 +135,7 @@ spTGCC <- function(
     theta = thetaList,
     coordinates = coordinates,
     pointer = pointerList,
-    leftFeature = leftFeature,
+    leftFeature = leftFeatureList,
     lambdaSeq = lambdaSeq,
     gammaSeq = gammaSeq
   )

@@ -106,9 +106,7 @@ double SparseClusteringLoss(
 arma::mat updateUSC(
     const arma::mat& dataMatrix,
     const arma::mat& initialMatrix,
-    double lambda,
-    double gamma,
-    int maxIterations,
+    double lambda, double gamma, int maxIterations,
     double precisionThreshold,
     const std::vector<double>& vertices,
     const std::vector<double>& nodeTypes,

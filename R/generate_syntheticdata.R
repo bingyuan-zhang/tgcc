@@ -132,9 +132,9 @@ make.tworolls <- function (n) {
   return(list(data = data, label = label))
 }
 
-make.checkboard <- function (n, isGroundTruth = FALSE) {
-  # 4 * 4 = 8 check board
-  candidates <- seq(from = -8, to = 8, by = 0.7)
+make.checkerboard <- function (n) {
+  # 4 * 4 checker board
+  candidates <- seq(from = -6, to = 6, by = 0.5)
   centers <- sample(candidates, 16, replace = FALSE)
 
   row_cluster_id <-
@@ -151,49 +151,50 @@ make.checkboard <- function (n, isGroundTruth = FALSE) {
       replace = TRUE,
       prob = exp(1:4 / 4)
     ))
-  sigma <- ifelse(isGroundTruth, 0.01, 3)
 
   X <- matrix(0, nrow = n, ncol = n)
+
   for (row_cluster in 1:4) {
     rowid <- row_cluster == row_cluster_id
     for (col_cluster in 1:4) {
       colid <- col_cluster == column_cluster_id
-      X[rowid, colid] = rnorm(n = sum(rowid) * sum(colid),
-        mean = centers[(row_cluster - 1) * 4 + col_cluster],
-        sd = sigma)
+      # X[rowid, colid] = rnorm(n = sum(rowid) * sum(colid),
+      #   mean = centers[(row_cluster - 1) * 4 + col_cluster],
+      #   sd = sigma)
+      X[rowid, colid] = centers[(row_cluster - 1) * 4 + col_cluster]
     }
   }
 
-  return(list(data = X, label = row_cluster_id))
+  data <- X + matrix(rnorm(n*n, 0, 3), n, n)
+  return(list(data = data, label = row_cluster_id, groundTruth = X))
 }
 
 #' @importFrom mvtnorm rmvnorm
-make.fourspherical <- function (n, isGroundTruth = FALSE){
-  mu = 2
+make.fourspherical <- function (n){
+  mu = 1.5
   # generate informative features from 4 groups
   X <- matrix(0, nrow = n, ncol = 20)
   candidates <- sample(1:4, n, replace = TRUE)
   num_samples = table(candidates)
-  sigma = diag(x = 1, nrow=20, ncol=20)
+  sigma = diag(x = 0, nrow=20, ncol=20)
   X[candidates==1] <- mvtnorm::rmvnorm(n = num_samples[1], mean = rep(mu, 20), sigma)
   X[candidates==2] <- mvtnorm::rmvnorm(n = num_samples[2], mean = rep(-mu, 20), sigma)
   X[candidates==3] <- mvtnorm::rmvnorm(n = num_samples[3], mean = c(rep(-mu, 10), rep(mu, 10)), sigma)
   X[candidates==4] <- mvtnorm::rmvnorm(n = num_samples[4], mean = c(rep(mu, 10), rep(-mu, 10)), sigma)
 
-  # generate noises
-  X_noise <- matrix(rnorm(n=80*n, mean=0, sd=1), nrow=n)
   X_NA <- matrix(NA, nrow=n, ncol=80)
-  if (isGroundTruth) {
-    X <- cbind(X, X_NA)
-  } else {
-    X <- cbind(X, X_noise)
-  }
-  list(data=X, label=candidates)
+  X_noise0 <- mvtnorm::rmvnorm(n = n, mean = rep(0, 20), diag(x = 1, nrow=20, ncol=20))
+  X_noise1 <- matrix(rnorm(n=80*n, mean=0, sd=1), nrow=n)
+
+  groundtruth <- cbind(X, X_NA)
+  data <- cbind(X + X_noise0, X_noise1)
+
+  list(data=data, label=candidates, groundtruth=groundtruth)
 }
 
 #' @importFrom GPArotation Random.Start
 #' @importFrom mvtnorm rmvnorm
-generate_multidim <- function(n, p){
+make.multidim.threeclust <- function(n, p){
   # DO NOT CHANGE #
   ##################################
   mu <- matrix(0,3,2)

@@ -9,7 +9,7 @@
 #' @param useNorm logical, whether to use normalized distance. Default is `TRUE`.
 #' @param depthThresh depth threshold target. Default is `10`.
 #' @param probThresh probability threshold for edge weight. Default is `0.1`.
-#' @param isNaive use naive method in searching MST. Default is `TURE`.
+#' @param isNaive use naive method in searching MST. Default is `FALSE`.
 #' @return A list containing the clustered results.
 #'
 #' @useDynLib tgcc, .registration=TRUE
@@ -27,17 +27,17 @@
 #' makeDendrogram(tgccFit, label)
 #'
 #' @export
-tgCC <- function(data,
+tgCC <- function(
+  data,
   lambdaSeq,
   bandwidth = NULL,
   useNorm = TRUE,
   depthThresh = 10,
   probThresh = 0.1,
-  isNaive = TRUE) {
+  isNaive = FALSE) {
+
   # Initialize the parameters
   init <- initParams(data, bandwidth, useNorm, isNaive)
-  mstTime <- init$mstTime
-  initTime <- init$initTime
   params <- init$params
 
   # Extract parameters
@@ -127,7 +127,7 @@ tgCC <- function(data,
     pointer = pointerList,
     lambdaSeq = lambdaSeq,
     tgccTime = totalFitTime,
-    initTime = initTime,
-    mstTime = mstTime
+    initTime = init$initTime,
+    mstTime = init$mstTime
   )
 }

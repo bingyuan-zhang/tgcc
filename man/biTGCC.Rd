@@ -16,7 +16,7 @@ biTGCC(
   probThresh = 0.1,
   maxIter = 500,
   threshold = 1e-05,
-  isNaive = TRUE
+  isNaive = FALSE
 )
 }
 \arguments{
@@ -42,7 +42,7 @@ biTGCC(
 
 \item{threshold}{stop condition of the Dykstra algorithm.}
 
-\item{isNaive}{use naive method in searching MST. Default is `TURE`.}
+\item{isNaive}{use naive method in searching MST. Default is `FALSE`.}
 }
 \description{
 Perform the tree-guided convex biclustering.
