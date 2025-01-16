@@ -25,4 +25,6 @@ Imports:
     dendextend,
     mlpack,
     grDevices,
-    stats
+    stats,
+    GPArotation,
+    mvtnorm
