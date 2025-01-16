@@ -1,0 +1,140 @@
+---
+title: "extension_of_tgcc"
+author: "zhang"
+format: html
+execute:
+  echo: false
+  output: false
+editor: visual
+---
+
+```{r}
+library(tgcc)
+library(pheatmap)
+```
+
+```{r}
+# generate FS model ground truth
+set.seed(2024)
+FSmodel <- tgcc:::make.fourspherical(300)
+label <- FSmodel$label
+order <- order(label)
+label <- label[order]
+data <- FSmodel$data[order, ]
+data0 <- FSmodel$groundtruth[order, ]
+
+# tuning parameter of lambda and gamma
+threshold <- 1e-05
+maxIter <- 100
+gammaSeq <- rep(2, length.out=10)
+lambdaSeq <- as.integer(seq(1, 60, length.out=10))
+
+# fit the biTGCC model
+tgccFit <- tgcc:::spTGCC(
+  data = data,
+  lambdaSeq = lambdaSeq,
+  gammaSeq = gammaSeq,
+  threshold = threshold,
+  maxIter = maxIter)
+
+# estimated centroid matrix theta
+Theta <- tgccFit$theta
+
+# calculate the error rate
+predLabel <- tgcc:::clusterLabel(tgccFit, numClusters=4)
+1-mclust::classError(label, predLabel)$errorRate
+
+# set color
+range <- quantile(data[!is.na(data)], c(0.0, 0.5, 1))
+colfun <- circlize::colorRamp2(range, c("blue", "white", "red"))
+breaks <- seq(min(data, na.rm = TRUE), max(data, na.rm = TRUE), length.out = 256)
+colvec <- colfun(breaks)
+
+# ground truth
+# show results
+showHeatmap <- function(data) {
+  pheatmap::pheatmap(
+    data,
+    color = colvec,
+    cluster_rows = FALSE,
+    cluster_cols = FALSE,
+    legend = FALSE
+  )
+}
+hplot0 <- showHeatmap(data0)
+hplot1 <- showHeatmap(data)
+hplot2 <- showHeatmap(Theta[[4]]) 
+hplot3 <- showHeatmap(Theta[[5]]) 
+hplot4 <- showHeatmap(Theta[[10]])
+
+lambdaSeq[c(4,5,10)]
+# nlevel <- 256
+# col_level <- seq(from = range[1], to = range[2], length.out = nlevel)
+# image(1, col_level, matrix(col_level, nrow = 1),
+#       col = gplots::bluered(nlevel),
+#       xlab = NA, ylab = NA, xaxt = "n")
+```
+
+```{r}
+# generate check board model ground truth
+set.seed(2024)
+CBmodel <- tgcc:::make.checkerboard(300)
+data <- CBmodel$data
+data0 <- CBmodel$groundTruth
+
+label <- CBmodel$label
+
+# tuning parameter of lambda and gamma
+lambdaSeq <- gammaSeq <- as.integer(seq(1, 30, length.out=10))
+n <- nrow(data); 
+p <- ncol(data); 
+maxIter <- 100
+threshold <- 1e-05 * n * p
+
+# fit the biTGCC model
+tgccFit <-
+  tgcc:::biTGCC(data,
+    lambdaSeq,
+    gammaSeq,
+    threshold = threshold,
+    maxIter = maxIter)
+
+# calculate the error rate
+predLabel <- tgcc:::clusterLabel(tgccFit, numClusters=4)
+1-mclust::classError(label, predLabel)$errorRate
+
+# estimated centroid matrix theta
+Theta <- tgccFit$theta
+
+# set color
+range <- quantile(data[!is.na(data)], c(0, 0.5, 1))
+colfun <- circlize::colorRamp2(range, c("blue", "white", "red"))
+breaks <- seq(min(data, na.rm = TRUE), max(data, na.rm = TRUE), length.out = 256)
+colvec <- colfun(breaks)
+
+# show results
+showHeatmap <- function(X) {
+  pheatmap::pheatmap(
+    X,
+    color = colvec,
+    cluster_rows = FALSE,
+    cluster_cols = FALSE,
+    legend = FALSE
+  )
+}
+
+hplot0 <- showHeatmap(data0)
+hplot1 <- showHeatmap(data)
+
+hplot2 <- showHeatmap(Theta[[2]]) 
+hplot3 <- showHeatmap(Theta[[5]]) 
+hplot4 <- showHeatmap(Theta[[10]])
+
+lambdaSeq[c(2,5,10)]
+
+# nlevel <- 256
+# col_level <- seq(from = range[1], to = range[3], length.out = nlevel)
+# image(1, col_level, matrix(col_level, nrow = 1),
+#       col = gplots::bluered(nlevel),
+#       xlab = NA, ylab = NA, xaxt = "n")
+```
