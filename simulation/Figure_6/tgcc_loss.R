@@ -13,17 +13,17 @@ findloss <- function(data, theta, lam, parents, nodeWeights) {
 tgccLoss <- function(
     data,
     lamseq,
-    bandwith = NULL,
+    bandwidth = NULL,
     useNorm = TRUE,
-    depth_thres = 10,
-    prob = 0.1) {
+    depthThresh = 10,
+    probThresh = 0.1) {
 
   # inputs: data (n*p) and lamseq (K).
   input <- data
   k <- length(lamseq)
 
   # parameters for tree-guided L_1 convex clustering
-  init <- initParams(data, bandwidth, useNorm, isNaive)
+  init <- tgcc:::initParams(data, bandwidth, useNorm, isNaive = FALSE)
   params <- init$params
   nodeTypes <- params$Types
   partitionSizes <- params$Partitions
@@ -118,8 +118,8 @@ tgccLoss <- function(
 
     # update parameters
     updatedParams <-
-      updatenew(
-        thetaMatrix,
+      tgcc:::updatenew(
+        theta,
         updatedData,
         vertices,
         nodeTypes,

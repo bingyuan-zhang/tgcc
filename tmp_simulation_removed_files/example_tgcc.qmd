@@ -1,0 +1,62 @@
+---
+title: "example_for_tgcc"
+author: "zhang"
+format: html
+execute:
+  echo: false
+  output: false
+editor: visual
+---
+
+## R library
+
+```{r}
+# | echo: false
+library(tgcc)
+```
+
+## Prepare testing data set
+
+```{r}
+set.seed(2024)
+dl <- tgcc:::make.mixgaussian(n = 400)
+data <- dl$data
+label <- dl$label
+plot(data, col=label)
+
+lambdaSeq <- seq(1, 4000, length.out = 100)
+bandwidth <- 1
+tgccFit <-
+  tgcc::tgCC(data = data,
+    lambdaSeq = lambdaSeq,
+    bandwidth = bandwidth)
+tgcc::makeDendrogram(tgccFit, label)
+
+predLabel <- tgcc::clusterLabel(tgccFit, numClusters=3)
+
+1-mclust::classError(label, predLabel)$errorRate
+```
+
+### test 2
+
+```{r}
+#| cache: true
+#| message: false
+set.seed(1)
+dl <- tgcc:::make.mixgaussian(n = 1000)
+data <- dl$data
+label <- dl$label
+plot(data, col=label)
+
+lamseq <- seq(1, 10000, length.out = 100)
+tic <- proc.time()
+for(i in 1:10){
+  tgccFit <- tgCC(data = data, lambdaSeq = lamseq, bandwidth = 1)
+}
+toc <- proc.time()
+
+tgcc:::makeDendrogram(tgccFit, label)  
+predLabel <- tgcc:::clusterLabel(tgccFit, numClusters=3)
+1-mclust::classError(label, predLabel)$errorRate
+(toc - tic)[3]
+```
