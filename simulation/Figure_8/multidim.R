@@ -17,11 +17,10 @@ for(i in seq_along(n_dim)) {
     rt_tgcc[i,j] <- res.fit$tgccTime
   }
 }
-
 saveRDS(rt_mst, file = "./simulation/Figure_8/rt_mst.rds")
 saveRDS(rt_tgcc, file = "./simulation/Figure_8/rt_tgcc.rds")
 
-# size
+
 rt_mat <- rbind(rowMeans(rt_tgcc), rowMeans(rt_mst))
 barplot(rt_mat,
   beside = FALSE,

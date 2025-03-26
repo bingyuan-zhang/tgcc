@@ -1,18 +1,42 @@
+library(readr)
+library(tgcc)
+HEPMASS <- read_csv("../newrealdata/1000_test.csv.gz")
+L = HEPMASS[,1]
+L = L$`# label`
 
-label = partdata$`# label`
-data = as.matrix(partdata[,2:28])
-n <- 10^3
-x = data[1:n,]
-xlabel = label[1:n]
-lamseq = 2^seq(0.1, 100, 1)
-dim(x)
-rm(data)
-rm(partdata)
-#HEPMASS_10000
-#===========================================
-lamseq = 2^seq(10,100, 10)#2^seq(0.1, 100, 1)
-#f6, f10, f14, f25, f26
-#x <- scale(x[,-c(6, 10, 14, 18, 22)])
-x <- scale(x[,c(7, 11, 15, 26, 27)])
-pairs(x, pch = 16, cex = 0.3, col = xlabel + 1)
+Alldata = HEPMASS[,-1]
+data <- as.matrix(Alldata[1:1e6,])
+rdata <- scale(data[1:1e6, c(7, 11, 15, 26, 27)])
+rlabel <- L[1:1e6]
 
+rm(L)
+rm(Alldata)
+rm(HEPMASS)
+
+lamseq <- seq(from = 100, to = nrow(data)/2, length.out = 1000)
+stime <- proc.time()
+tgcc.fit <- tgCC(data = rdata, lambdaSeq = lamseq, bandwidth = 50, probThresh = 0.01)
+etime <- proc.time()
+etime - stime
+estlabel <- clusterLabel(tgcc.fit, numClusters = 2)
+ari <- mclust::adjustedRandIndex(estlabel, rlabel)
+er <- mclust::classError(estlabel, rlabel)$errorRate
+1 - er; ari
+
+source("./simulation/Figure_11/utils.R")
+res.heat <- parsHeatmap(tgcc.fit, rlabel, show = 500, k = 2)
+datanew <- res.heat$datanew
+dend <- res.heat$dend
+labelnew <- res.heat$rowcolor
+col_new <- rep("orangered",nrow(datanew))
+col_new[which(labelnew==0)] <- "royalblue"
+heatmap(
+  datanew,
+  Rowv = dend,
+  Colv = NA,
+  xlab = "",
+  labRow = FALSE,
+  labCol = FALSE,
+  RowSideColors = col_new,
+  col = gplots::redgreen(500)
+)

@@ -8,3 +8,7 @@ src/*.dll
 
 oldSrc/*
 
+*.rds
+*.png
+
+temp/

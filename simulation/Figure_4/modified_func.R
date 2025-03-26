@@ -151,23 +151,9 @@ convex_clusterpath_modified <- function(
 }
 
 library(rlang)
-#
-# X <- data_list[[4]]
-# weights = sparse_rbf_kernel_weights(k = "auto",
-#   phi = "auto",
-#   dist.method = "euclidean",
-#   p = 2)
-# labels = rownames(X)
-# X.center = TRUE
-# X.scale = FALSE
-# back_track = FALSE
-# exact = FALSE
-# norm = 2
-# t = 1.05
-# npcs = min(4L, NCOL(X), NROW(X))
-# dendrogram.scale = NULL
-# impute_func = function(X) {if(anyNA(X)) missForest(X)$ximp else X}
-# status = (interactive() && (clustRviz_logger_level() %in% c("MESSAGE", "WARNING", "ERROR")))
+# We modify the clustRviz::CARP function by eliminating the post -
+#   fitting step, as it is not essential for runtime comparison.
+
 CARP_modified <- function(X,
   weights = sparse_rbf_kernel_weights(k = "auto",
     phi = "auto",

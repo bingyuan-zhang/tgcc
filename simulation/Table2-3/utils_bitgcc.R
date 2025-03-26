@@ -1,7 +1,7 @@
 library(cvxbiclustr)
 library(tgcc)
 #===============================================================================
-# Rewrite the cobra function for comparison
+# Prepare function for comparison
 #===============================================================================
 # for BICC, the convergence condition is sqrt(\|U.new-Y.new\|_F^2)
 gkn_weights2 <- function(X,
