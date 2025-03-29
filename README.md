@@ -7,6 +7,7 @@ R package `tgcc` implements the tree-guided convex clustering (TGCC) and its ext
 -   [Installation](#installation)
 -   [TGCC](#tgcc)
 -   [Extensions of TGCC](#tgcc_extended)
+-   [Reference](#tgcc_ref)
 
 ## Installation {#installation}
 
@@ -174,3 +175,9 @@ showHeatmap(tgccFit$theta[[3]], colvec)
 ```
 
 <img src="./inst/example_png/bitgcc.png" width="100%" style="display: block; margin: auto;"/>
+
+## Reference {#tgcc_ref}
+
+Tree-Guided $L_1$-Convex Clustering by Bingyuan Zhang, and Yoshikazu Terada.
+
+See also the [simulation code](https://github.com/bingyuan-zhang/tgcc_simulation_code) in the TGCC paper.

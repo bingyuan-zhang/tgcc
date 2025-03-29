@@ -11,5 +11,3 @@ src/*.dll
 *.rds
 *.png
 
-# ignore temporary files
-temp/
