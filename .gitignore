@@ -7,7 +7,3 @@ src/*.so
 src/*.dll
 
 
-# ignore stored files
-*.rds
-*.png
-
