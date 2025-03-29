@@ -11,7 +11,7 @@ tgCC(
   useNorm = TRUE,
   depthThresh = 10,
   probThresh = 0.1,
-  isNaive = FALSE
+  isNaive = TRUE
 )
 }
 \arguments{
@@ -27,7 +27,7 @@ tgCC(
 
 \item{probThresh}{probability threshold for edge weight. Default is `0.1`.}
 
-\item{isNaive}{use naive method in searching MST. Default is `FALSE`.}
+\item{isNaive}{use naive method in searching MST. Default is `TURE`.}
 }
 \value{
 A list containing the clustered results.

@@ -5,11 +5,11 @@ R package `tgcc` implements the tree-guided convex clustering (TGCC) and its ext
 ## Contents
 
 -   [Installation](#installation)
--   [TGCC](#tgcc)
--   [Extensions of TGCC](#tgcc_extended)
--   [Reference](#tgcc_ref)
+-   [Examples](#examples)
+    -   [Example 1: TGCC]
+    -   [Example 2: Extensions of TGCC]
 
-## Installation {#installation}
+## Installation
 
 Run the following code in Rstudio to install `tgcc` from GitHub.
 
@@ -18,15 +18,18 @@ library(devtools)
 install_github("bingyuan-zhang/tgcc")
 ```
 
-## TGCC {#tgcc}
+## Examples
 
-We demonstrate TGCC using the following examples.
+We apply TGCC to the following examples.
 
-At the beginning, we load the `tgcc` R package.
+At the beginning, we load the `tgcc` and the `ComplexHeatmap` R package for visualization.
 
 ``` r
 library(tgcc)
+library(ComplexHeatmap)
 ```
+
+### Example 1: TGCC
 
 The first example is a mixture Gaussian model as follows.
 
@@ -42,17 +45,15 @@ plot(data, col=label)
 
 <img src="./inst/example_png/mixtureGaussian.svg" width="80%" style="display: block; margin: auto;"/>
 
-To apply TGCC, we set a tuning parameter sequence for lambda, and the bandwidth for Gaussian kernel.
+To apply TGCC, we set a tuning parameter sequence for lambda, and adjust the bandwidth to be 1 (see other parameters `?tgcc::tgCC`).
 
-`tgcc::makeDendrogram` provides a dendrogram visualization of the convex clustering result. The y-axis represents the value of lambda, and colors indicate the input labels.
+`makeDendrogram` provides a dendrogram visualization of the convex clustering result. The y-axis represents the value of lambda, and colors indicate the input labels.
 
 ``` r
-lambdaSeq <- seq(1, 200, length.out = 100)
-bandwidth <- 10
-tgccFit <- tgCC(
-  data = data, 
-  lambdaSeq = lambdaSeq, 
-  bandwidth = bandwidth)
+lambdaSeq <- seq(1, 4000, length.out = 100)
+bandwidth <- 1
+tgccFit <-
+  tgcc::tgCC(data = data, lambdaSeq = lambdaSeq, bandwidth = bandwidth)
 tgcc::makeDendrogram(tgccFit, label)
 ```
 
@@ -69,7 +70,7 @@ predLabel <- tgcc::clusterLabel(tgccFit, numClusters=3)
 [1] 0.9875
 ```
 
-## Extensions of TGCC {#tgcc_extended}
+### Example 2: Extensions of TGCC
 
 TGCC can be easily extended for other different settings under the convex clustering framework.
 
@@ -82,53 +83,47 @@ For the sparse clustering setting, we generate the Four Spherical example.
 `spTGCC` obtains the clusters while removing the noisy features simultaneously.
 
 ``` r
-# generate FS model ground truth
 set.seed(2024)
-FSmodel <- tgcc:::make.fourspherical(n=400)
-order <- order(FSmodel$label)
-data <- FSmodel$data[order, ]
-label <- FSmodel$label[order]
-data0 <- FSmodel$groundtruth[order, ]
+FsModelDat0 <- tgcc:::make.fourspherical(300, isGroundTruth = TRUE)
+data0 <- FsModelDat0$data[order(FsModelDat0$label), ]
+ComplexHeatmap::pheatmap(data0, cluster_rows = FALSE, cluster_cols = FALSE, legend = FALSE)
 ```
 
-The estimated centroid matrices is visualized as heatmaps.
+The estimated centroid matrix is visualized as a heatmap using `pheatmap` in `ComplexHeatmap` R package.
 
 ``` r
-# tuning parameters
-gammaSeq <- c(1, 1.5, 1.9)
-lambdaSeq <- c(30, 60, 120)
+# generate the data matrix following the FS model
+set.seed(2024)
+FsModelDat <- tgcc:::make.fourspherical(300)
+data <- FsModelDat$data
+label <- FsModelDat$label
+data <- data[order(label), ]
+label <- sort(label)
 
-# fit the spTGCC model
-tgccFit <- spTGCC(
-  data = data, 
+# tuning parameter of lambda and gamma
+threshold <- 1e-05
+maxIter <- 100
+gammaSeq <- rep(1.7, 10)
+lambdaSeq <- seq(1, 60, length.out=10)
+
+# fit the biTGCC
+tgccFit <- tgcc::spTGCC(
+  data = data,
   lambdaSeq = lambdaSeq,
   gammaSeq = gammaSeq,
-  threshold = 1e-05,
-  maxIter = 100)
+  threshold = threshold,
+  maxIter = maxIter)
 
-# set color
-range <- quantile(data[!is.na(data)], c(0.0, 0.5, 1))
-colfun <- circlize::colorRamp2(range, 
-  c("blue", "white", "red"))
-breaks <- seq(min(data, na.rm = TRUE), max(data, na.rm = TRUE), length.out = 256)
-colvec <- colfun(breaks)
+# calculate the error rate
+predLabel <- tgcc::clusterLabel(tgccFit, numClusters=4)
+1-mclust::classError(label, predLabel)$errorRate
 
-showHeatmap <- function(data, colvec) {
-  pheatmap::pheatmap(
-    mat = data,
-    color = colvec,
-    cluster_rows = FALSE,
-    cluster_cols = FALSE,
-    legend = FALSE,
-    na_col = "grey65"
-  )
-}
-
-showHeatmap(data0, colvec)
-showHeatmap(data, colvec)
-showHeatmap(tgccFit$theta[[1]], colvec)
-showHeatmap(tgccFit$theta[[2]], colvec)
-showHeatmap(tgccFit$theta[[3]], colvec)
+# estimated centroid matrix
+Theta <- tgccFit$theta
+ComplexHeatmap::pheatmap(data, cluster_rows = FALSE, cluster_cols = FALSE, legend = FALSE)
+ComplexHeatmap::pheatmap(Theta[[4]], cluster_rows = FALSE, cluster_cols = FALSE, legend = FALSE)
+ComplexHeatmap::pheatmap(Theta[[5]], cluster_rows = FALSE, cluster_cols = FALSE, legend = FALSE)
+ComplexHeatmap::pheatmap(Theta[[10]], cluster_rows = FALSE, cluster_cols = FALSE, legend = FALSE)
 ```
 
 <img src="./inst/example_png/sptgcc.png" width="100%" style="display: block; margin: auto;"/>
@@ -141,43 +136,48 @@ For the biclustering setting, we generate the Check Board example.
 
 ``` r
 set.seed(2024)
-CBmodel <- tgcc:::make.checkerboard(n = 400)
-data <- CBmodel$data
-label <- CBmodel$label
-data0 <- CBmodel$groundTruth
+FsModelDat0 <- tgcc:::make.checkboard(300, isGroundTruth = TRUE)
+data0 <- FsModelDat0$data[order(FsModelDat0$label), ]
+pheatmap(data0, cluster_rows = FALSE, cluster_cols = FALSE, legend = FALSE)
 ```
 
-The estimated centroid matrices is visualized as heatmaps.
+The estimated centroid matrix is visualized as a heatmap using `pheatmap` in `ComplexHeatmap` R package.
 
 ``` r
+# generate check board model
+set.seed(2024)
+FsModelDat <- tgcc:::make.checkboard(300)
+data <- FsModelDat$data
+label <- FsModelDat$label
+data <- data[order(label), ]
+label <- sort(label)
+
 # tuning parameter of lambda and gamma
-lambdaSeq <- gammaSeq <- c(20, 50, 150)
+lambdaSeq <- gammaSeq <- seq(1, 60, length.out=10)
+n <- nrow(data); 
+p <- ncol(data); 
+maxIter <- 100
+threshold <- 1e-05 * n * p
 
 # fit the biTGCC model
-tgccFit <- biTGCC(
-    data,
+tgccFit <-
+  tgcc:::biTGCC(data,
     lambdaSeq,
     gammaSeq,
-    threshold = 1e-05 * nrow(data) * ncol(data),
-    maxIter = 100)
+    threshold = threshold,
+    maxIter = maxIter)
 
-# set color
-range <- quantile(data[!is.na(data)], c(0, 0.5, 1))
-colfun <- circlize::colorRamp2(range, c("blue", "white", "red"))
-breaks <- seq(min(data, na.rm = TRUE), max(data, na.rm = TRUE), length.out = 256)
-colvec <- colfun(breaks)
+# calculate the error rate
+predLabel <- tgcc:::clusterLabel(tgccFit, numClusters=4)
+1-mclust::classError(label, predLabel)$errorRate
 
-showHeatmap(data0, colvec)
-showHeatmap(data, colvec)
-showHeatmap(tgccFit$theta[[1]], colvec)
-showHeatmap(tgccFit$theta[[2]], colvec)
-showHeatmap(tgccFit$theta[[3]], colvec)
+
+# estimated centroid matrix theta
+Theta <- tgccFit$theta
+ComplexHeatmap::pheatmap(data, cluster_rows = FALSE, cluster_cols = FALSE, legend = FALSE)
+ComplexHeatmap::pheatmap(Theta[[2]], cluster_rows = FALSE, cluster_cols = FALSE, legend = FALSE)
+ComplexHeatmap::pheatmap(Theta[[4]], cluster_rows = FALSE, cluster_cols = FALSE, legend = FALSE)
+ComplexHeatmap::pheatmap(Theta[[10]], cluster_rows = FALSE, cluster_cols = FALSE, legend = FALSE)
 ```
 
 <img src="./inst/example_png/bitgcc.png" width="100%" style="display: block; margin: auto;"/>
-
-## Reference {#tgcc_ref}
-
-Tree-Guided $L_1$-Convex Clustering by Bingyuan Zhang, and Yoshikazu Terada.
-
-See also the [simulation code](https://github.com/bingyuan-zhang/tgcc_simulation_code) in the TGCC paper.

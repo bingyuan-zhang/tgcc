@@ -2,5 +2,9 @@
 ^\.Rproj\.user$
 ^LICENSE\.md$
 ^inst$
+^oldSrc$
 ^README\.md$
+
+^simulation$
+
 
