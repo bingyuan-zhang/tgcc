@@ -6,9 +6,10 @@ src/*.o
 src/*.so
 src/*.dll
 
-oldSrc/*
 
+# ignore stored files
 *.rds
 *.png
 
+# ignore temporary files
 temp/
