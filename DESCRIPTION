@@ -9,8 +9,7 @@ Authors@R: c(person(given = "Bingyuan",
                     comment = c(ORCID = "0000-0002-4892-323X")),
              person(given = "Yoshikazu", 
                     family = "Terada",
-                    role = "aut",
-                    email = "terada@sigmath.es.osaka-u.ac.jp"))
+                    role = "aut"))
 Maintainer: Bingyuan Zhang <zhang.bingyuan.w8@f.mail.nagoya-u.ac.jp>
 Description: 
     Implements of tree-guided convex clustering via a dynamic programming based optimization framework.
