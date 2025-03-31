@@ -130,7 +130,7 @@ makeDendrogram <- function(tgccFit, labels) {
 
   plot(dendrogram)
 
-  dendextend::colored_bars(barColors, text_shift = NULL, y_shift = -50)
+  dendextend::colored_bars(barColors, text_shift = NULL, y_shift = -5)
 }
 
 
