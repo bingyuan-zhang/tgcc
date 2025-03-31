@@ -18,15 +18,15 @@ devtools::install_github("bingyuan-zhang/tgcc")
 
 Tree-Guided Convex Clustering solves the following problem:
 
-::: {style="text-align: center;"}
+<center>
 <img src="inst/example_png/eq1.png" width="300"/>
-:::
+</center>
 
 with the weight
 
-::: {style="text-align: center;"}
+<center>
 <img src="inst/example_png/eq2.png" width="300"/>
-:::
+</center>
 
 where $E$ is the edge set of a minimum spanning tree. $\gamma$ is a given constant.
 
@@ -48,9 +48,9 @@ plot(data[sel,], col = color[sel],
      xlab = "", ylab = "")
 ```
 
-::: {style="text-align: center;"}
+<center>
 <img src="inst/example_png/tm_1e4.svg" width="50%"/> 
-:::
+</center>
 
 To apply TGCC, we need to set a tuning parameter sequence for lambda, and a bandwidth value for Gaussian kernel.
 
@@ -87,9 +87,9 @@ estlabel <- clusterLabel(tgcc.fit, numClusters = 2)
 
 The estimated labels of sampled data points:
 
-::: {style="text-align: center;"}
+<center>
 <img src="inst/example_png/tm_est_1e4.svg" width="50%"/>
-:::
+</center>
 
 The corresponding dendrogram:
 
@@ -103,9 +103,9 @@ col <- ifelse(fit.sum$rowcolor == 1, "royalblue", "orangered")
 dendextend::colored_bars(
   col, text_shift = NULL, y_shift = -5)
 ```
-::: {style="text-align: center;"}
+<center>
 <img src="inst/example_png/dend.svg" width="80%"/>
-:::
+</center>
 
 The y-axis shows the lambda values. Because it is impossible to show a dendrogram for $1e5$ points, the color bar shows the true labels of intermediate clusters of the Two Moon dataset. The colors indicate the mode of labels in each intermediate cluster.
 
@@ -115,21 +115,21 @@ TGCC can be easily extended to: - Sparse-clustering (`spTGCC`) - Bi-clustering (
 
 These extensions share a unified loss:
 
-::: {style="text-align: center;"}
+<center>
 <img src="inst/example_png/eq3.png" width="300"/>
-:::
+</center>
 
 with:
 
-::: {style="text-align: center;"}
+<center>
 <img src="inst/example_png/eq4.png" width="300"/>
-:::
+</center>
 
 and: 
 
-::: {style="text-align: center;"}
+<center>
 <img src="inst/example_png/eq5.png" width="500"/>
-:::
+</center>
 
 #### Sparse Clustering Setting (spTGCC)
 
