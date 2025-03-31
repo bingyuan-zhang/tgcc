@@ -18,17 +18,17 @@ devtools::install_github("bingyuan-zhang/tgcc")
 
 Tree-Guided Convex Clustering solves the following problem:
 
-$$ \min_{\boldsymbol{\theta}}\frac{1}{2}\sum_{i = 1}^n\|\boldsymbol{y}_i - \boldsymbol{\theta}_i\|_2^2 + \lambda \sum_{i\neq j}w_{ij} \|\boldsymbol{\theta}_i - \boldsymbol{\theta}_j\|_q$$
+::: {style="text-align: center;"}
+<img src="inst/example_png/eq1.png" width="300"/>
+:::
 
 with the weight
 
-$$ w_{ij} =
-\begin{cases}
-& \exp(-\|\boldsymbol{y}_i-\boldsymbol{y}_j\|_2^2/\gamma), & (i,j) \in E, \\
-& 0, & (i,j) \neq E
-\end{cases} $$
+::: {style="text-align: center;"}
+<img src="inst/example_png/eq2.png" width="300"/>
+:::
 
-where $E\subset \{1, \dots, n\}^2$ is the edge set of a minimum spanning tree. $\it \gamma$ is a given constant.
+where $E$ is the edge set of a minimum spanning tree. $\gamma$ is a given constant.
 
 ### Example: Clustering Two Moons Dataset
 
@@ -48,7 +48,9 @@ plot(data[sel,], col = color[sel],
      xlab = "", ylab = "")
 ```
 
-<img src="inst/example_png/tm_1e4.svg" width="50%"/>
+::: {style="text-align: center;"}
+<img src="inst/example_png/tm_1e4.svg" width="50%"/> 
+:::
 
 To apply TGCC, we need to set a tuning parameter sequence for lambda, and a bandwidth value for Gaussian kernel.
 
@@ -83,9 +85,11 @@ estlabel <- clusterLabel(tgcc.fit, numClusters = 2)
 #> [1] 0.99668
 ```
 
-The estimated labels of sampled data points:*
+The estimated labels of sampled data points:
 
+::: {style="text-align: center;"}
 <img src="inst/example_png/tm_est_1e4.svg" width="50%"/>
+:::
 
 The corresponding dendrogram:
 
@@ -99,8 +103,9 @@ col <- ifelse(fit.sum$rowcolor == 1, "royalblue", "orangered")
 dendextend::colored_bars(
   col, text_shift = NULL, y_shift = -5)
 ```
-
+::: {style="text-align: center;"}
 <img src="inst/example_png/dend.svg" width="80%"/>
+:::
 
 The y-axis shows the lambda values. Because it is impossible to show a dendrogram for $1e5$ points, the color bar shows the true labels of intermediate clusters of the Two Moon dataset. The colors indicate the mode of labels in each intermediate cluster.
 
@@ -110,23 +115,21 @@ TGCC can be easily extended to: - Sparse-clustering (`spTGCC`) - Bi-clustering (
 
 These extensions share a unified loss:
 
-$$  
-L(\boldsymbol{\Theta}) = \frac{1}{2}\|\boldsymbol{Y} - \boldsymbol{\Theta}\|_F^2 + P_{1, \lambda}(\boldsymbol{\Theta}) + P_{2, \gamma}(\boldsymbol{\Theta})
-$$
+::: {style="text-align: center;"}
+<img src="inst/example_png/eq3.png" width="300"/>
+:::
 
 with:
 
-$$
-P_{1, \lambda}(\boldsymbol{\Theta}) = \lambda\sum_{i=1}^n\sum_{j\neq i}^n \alpha_{ij}\|\boldsymbol{\Theta}_{i\cdot} - \boldsymbol{\Theta}_{j\cdot}\|_1,
-$$
+::: {style="text-align: center;"}
+<img src="inst/example_png/eq4.png" width="300"/>
+:::
 
-and: $$
-P_{2, \gamma}(\boldsymbol{\Theta}) = 
-    \begin{cases}
-        \gamma\sum_{i=1}^p\sum_{j\neq i}^p\beta_{ij}\|\boldsymbol{\Theta}_{\cdot i} - \boldsymbol{\Theta}_{\cdot j}\|_1, & \text{for biclustering},\\
-        \gamma \sum_{i=1}^p \|\boldsymbol{\Theta}_{.i}\|_2, &\text{for sparse clustering.}
-    \end{cases}
-$$
+and: 
+
+::: {style="text-align: center;"}
+<img src="inst/example_png/eq5.png" width="500"/>
+:::
 
 #### Sparse Clustering Setting (spTGCC)
 
@@ -223,6 +226,7 @@ showHeatmap(tgccFit$theta[[1]], colvec)
 showHeatmap(tgccFit$theta[[2]], colvec)
 showHeatmap(tgccFit$theta[[3]], colvec)
 ```
+
 <img src="inst/example_png/bitgcc.png" width="100%"/>
 
 ## Reference
