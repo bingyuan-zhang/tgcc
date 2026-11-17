@@ -1,7 +1,7 @@
 Package: tgcc
 Type: Package
 Title: Tree Guided Convex Clustering
-Version: 0.1
+Version: 0.2.0
 Authors@R: c(person(given = "Bingyuan", 
                     family = "Zhang", 
                     role = c("aut", "cre"),
@@ -12,7 +12,8 @@ Authors@R: c(person(given = "Bingyuan",
                     role = "aut"))
 Maintainer: Bingyuan Zhang <zhang.bingyuan.w8@f.mail.nagoya-u.ac.jp>
 Description: 
-    Implements of tree-guided convex clustering via a dynamic programming based optimization framework.
+    Implements tree-guided convex clustering via a dynamic programming based optimization framework.
+    The tree is either the exact Euclidean minimum spanning tree or an approximate one constructed by FAMST.
 License: GPL (>= 3)
 RoxygenNote: 7.3.2
 Encoding: UTF-8
@@ -26,4 +27,5 @@ Imports:
     grDevices,
     stats,
     GPArotation,
-    mvtnorm
+    mvtnorm,
+    rnndescent

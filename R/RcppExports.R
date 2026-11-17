@@ -13,6 +13,14 @@ updateUBC <- function(dataMatrix, initialMatrix, lambda, gamma, maxIterations, p
     .Call(`_tgcc_updateUBC`, dataMatrix, initialMatrix, lambda, gamma, maxIterations, precisionThreshold, verticesSamples, nodeTypesSamples, parentsSamples, nodeWeightsSamples, edgeWeightsSamples, childrenListSamples, verticesFeatures, nodeTypesFeatures, parentsFeatures, nodeWeightsFeatures, edgeWeightsFeatures, childrenListFeatures)
 }
 
+famstComponents <- function(neighbors, n) {
+    .Call(`_tgcc_famstComponents`, neighbors, n)
+}
+
+famstKruskal <- function(u, v, w, n) {
+    .Call(`_tgcc_famstKruskal`, u, v, w, n)
+}
+
 computeTheta <- function(nodeValues, lambda, vertices, nodeTypes, parents, nodeWeights, edgeWeights, childrenList) {
     .Call(`_tgcc_computeTheta`, nodeValues, lambda, vertices, nodeTypes, parents, nodeWeights, edgeWeights, childrenList)
 }

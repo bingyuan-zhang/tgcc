@@ -109,6 +109,20 @@ dendextend::colored_bars(
 
 The y-axis shows the lambda values. Because it is impossible to show a dendrogram for $1e5$ points, the color bar shows the true labels of intermediate clusters of the Two Moon dataset. The colors indicate the mode of labels in each intermediate cluster.
 
+### Approximate MST by FAMST
+
+By default, TGCC uses the exact Euclidean minimum spanning tree (`mlpack::emst`), which is fast for low-dimensional data. Its construction dominates the total runtime as the dimension grows. With `mst = "famst"`, the tree is instead built by `famst()`, an R/C++ re-implementation of [FAMST](https://arxiv.org/abs/2507.14261) based on an approximate k-nearest-neighbour graph (`rnndescent`).
+
+``` r
+tgcc.fit2 <- tgCC(data = data, lambdaSeq = lambdaSeq, bandwidth = bandwidth,
+                  mst = "famst",
+                  famstControl = list(nNeighbors = 15, numRandomEdges = 3, seed = 1))
+tgcc.fit2$mstTime   # tree construction time
+tgcc.fit2$tgccTime  # dynamic programming and cluster fusion time
+```
+
+For large data where only the cluster labels are needed, `keepTheta = FALSE` avoids storing the fitted $n \times p$ matrix for every value of lambda; `clusterLabel()` works without it.
+
 ## Extensions of TGCC
 
 TGCC can be easily extended to: - Sparse-clustering (`spTGCC`) - Bi-clustering (`biTGCC`)

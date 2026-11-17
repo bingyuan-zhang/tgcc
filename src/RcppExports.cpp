@@ -75,6 +75,32 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// famstComponents
+List famstComponents(IntegerMatrix neighbors, int n);
+RcppExport SEXP _tgcc_famstComponents(SEXP neighborsSEXP, SEXP nSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerMatrix >::type neighbors(neighborsSEXP);
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    rcpp_result_gen = Rcpp::wrap(famstComponents(neighbors, n));
+    return rcpp_result_gen;
+END_RCPP
+}
+// famstKruskal
+List famstKruskal(IntegerVector u, IntegerVector v, NumericVector w, int n);
+RcppExport SEXP _tgcc_famstKruskal(SEXP uSEXP, SEXP vSEXP, SEXP wSEXP, SEXP nSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerVector >::type u(uSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type v(vSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type w(wSEXP);
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    rcpp_result_gen = Rcpp::wrap(famstKruskal(u, v, w, n));
+    return rcpp_result_gen;
+END_RCPP
+}
 // computeTheta
 std::vector<double> computeTheta(const std::vector<double>& nodeValues, const double lambda, const std::vector<double>& vertices, const std::vector<double>& nodeTypes, const std::vector<double>& parents, const std::vector<double>& nodeWeights, const std::vector<double>& edgeWeights, const std::vector<std::vector<double>>& childrenList);
 RcppExport SEXP _tgcc_computeTheta(SEXP nodeValuesSEXP, SEXP lambdaSEXP, SEXP verticesSEXP, SEXP nodeTypesSEXP, SEXP parentsSEXP, SEXP nodeWeightsSEXP, SEXP edgeWeightsSEXP, SEXP childrenListSEXP) {
@@ -130,6 +156,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_tgcc_updateUSC", (DL_FUNC) &_tgcc_updateUSC, 12},
     {"_tgcc_BiClusteringLoss", (DL_FUNC) &_tgcc_BiClusteringLoss, 4},
     {"_tgcc_updateUBC", (DL_FUNC) &_tgcc_updateUBC, 18},
+    {"_tgcc_famstComponents", (DL_FUNC) &_tgcc_famstComponents, 2},
+    {"_tgcc_famstKruskal", (DL_FUNC) &_tgcc_famstKruskal, 4},
     {"_tgcc_computeTheta", (DL_FUNC) &_tgcc_computeTheta, 8},
     {"_tgcc_initPrepare", (DL_FUNC) &_tgcc_initPrepare, 4},
     {"_tgcc_updatenew", (DL_FUNC) &_tgcc_updatenew, 8},

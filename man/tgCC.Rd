@@ -11,7 +11,10 @@ tgCC(
   useNorm = TRUE,
   depthThresh = 10,
   probThresh = 0.1,
-  isNaive = FALSE
+  isNaive = FALSE,
+  mst = c("exact", "famst"),
+  famstControl = list(),
+  keepTheta = TRUE
 )
 }
 \arguments{
@@ -27,7 +30,20 @@ tgCC(
 
 \item{probThresh}{probability threshold for edge weight. Default is `0.1`.}
 
-\item{isNaive}{use naive method in searching MST. Default is `FALSE`.}
+\item{isNaive}{use naive method in searching the exact MST. Default is `FALSE`.}
+
+\item{mst}{method used to construct the tree: `"exact"` for the exact
+Euclidean MST computed by `mlpack::emst`, or `"famst"` for the
+approximate MST computed by [famst()]. Default is `"exact"`.}
+
+\item{famstControl}{list of arguments passed to [famst()] when
+`mst = "famst"`: `nNeighbors` (default `15`), `numRandomEdges`
+(default `3`), `metric` (default `"euclidean"`) and `seed`.}
+
+\item{keepTheta}{logical, whether to return the fitted matrix for every
+value of lambda (`theta`). Each element is an n x p matrix, so set this
+to `FALSE` for large data when only the cluster labels are needed;
+[clusterLabel()] does not use `theta`. Default is `TRUE`.}
 }
 \value{
 A list containing the clustered results.
@@ -45,5 +61,9 @@ label <- dl$label
 lambdaSeq <- seq(1, 2000, length.out = 100)
 tgccFit <- tgCC( data = data, lambdaSeq = lambdaSeq)
 makeDendrogram(tgccFit, label)
+
+# approximate MST by FAMST
+tgccFit2 <- tgCC(data = data, lambdaSeq = lambdaSeq, mst = "famst")
+table(clusterLabel(tgccFit2, numClusters = 3), label)
 
 }

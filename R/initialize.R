@@ -3,11 +3,21 @@
 initParams <- function(data,
   bandwidth = NULL,
   normalize = TRUE,
-  isNaive = TRUE) {
+  isNaive = TRUE,
+  mst = "exact",
+  famstControl = list()) {
 
-  # Prepare the minimum spanning tree for samples.
+  # Prepare the minimum spanning tree for samples:
+  # a three-column edge list (0-based from, 0-based to, edge length).
   tStart <- proc.time()
-  resMST <- mlpack::emst(data, naive = isNaive)$output
+  if (mst == "exact") {
+    resMST <- mlpack::emst(data, naive = isNaive)$output
+  } else {
+    resFAMST <- do.call(famst, c(list(data = data), famstControl))
+    if (resFAMST$numComponents != 1)
+      stop("FAMST did not return a spanning tree; try a larger `nNeighbors`.")
+    resMST <- cbind(resFAMST$mst$u, resFAMST$mst$v, resFAMST$mst$w)
+  }
   tEnd <- proc.time()
   mstTime <- (tEnd - tStart)[3]
 
