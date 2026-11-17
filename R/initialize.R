@@ -5,7 +5,7 @@ initParams <- function(data,
   normalize = TRUE,
   isNaive = TRUE,
   mst = "exact",
-  famstControl = list()) {
+  famstControl = list(nNeighbors = 15, numRandomEdges = 3, metric = "euclidean")) {
 
   # Prepare the minimum spanning tree for samples:
   # a three-column edge list (0-based from, 0-based to, edge length).

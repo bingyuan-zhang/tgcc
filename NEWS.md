@@ -1,3 +1,9 @@
+# tgcc 0.2.1
+
+* The default FAMST settings of `tgCC()` are now shown in its signature:
+  `famstControl = list(nNeighbors = 15, numRandomEdges = 3, metric = "euclidean")`.
+  Results are unchanged.
+
 # tgcc 0.2.0
 
 * New function `famst()`: an R/C++ re-implementation of FAMST (fast

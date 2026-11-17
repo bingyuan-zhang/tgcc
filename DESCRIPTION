@@ -1,7 +1,7 @@
 Package: tgcc
 Type: Package
 Title: Tree Guided Convex Clustering
-Version: 0.2.0
+Version: 0.2.1
 Authors@R: c(person(given = "Bingyuan", 
                     family = "Zhang", 
                     role = c("aut", "cre"),

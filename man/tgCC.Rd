@@ -13,7 +13,7 @@ tgCC(
   probThresh = 0.1,
   isNaive = FALSE,
   mst = c("exact", "famst"),
-  famstControl = list(),
+  famstControl = list(nNeighbors = 15, numRandomEdges = 3, metric = "euclidean"),
   keepTheta = TRUE
 )
 }
@@ -37,8 +37,8 @@ Euclidean MST computed by `mlpack::emst`, or `"famst"` for the
 approximate MST computed by [famst()]. Default is `"exact"`.}
 
 \item{famstControl}{list of arguments passed to [famst()] when
-`mst = "famst"`: `nNeighbors` (default `15`), `numRandomEdges`
-(default `3`), `metric` (default `"euclidean"`) and `seed`.}
+`mst = "famst"`: `nNeighbors`, `numRandomEdges`, `metric` and `seed`.
+Entries not given take the default values of [famst()].}
 
 \item{keepTheta}{logical, whether to return the fitted matrix for every
 value of lambda (`theta`). Each element is an n x p matrix, so set this
