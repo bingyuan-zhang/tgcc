@@ -3,6 +3,7 @@
 export(biTGCC)
 export(clusterLabel)
 export(famst)
+export(lambdaMax)
 export(makeDendrogram)
 export(spTGCC)
 export(tgCC)

@@ -1,3 +1,12 @@
+# tgcc 0.2.2
+
+* New function `lambdaMax()`: finds the smallest lambda at which all samples
+  are fused, by a doubling search followed by bisection (relative tolerance
+  `relTol`). If some samples are never fused, the search stops after
+  `maxStall` consecutive doublings without a decrease in the number of
+  clusters. It replaces the internal function `checkLamTGCC()`, which has been
+  removed.
+
 # tgcc 0.2.1
 
 * The default FAMST settings of `tgCC()` are now shown in its signature:
